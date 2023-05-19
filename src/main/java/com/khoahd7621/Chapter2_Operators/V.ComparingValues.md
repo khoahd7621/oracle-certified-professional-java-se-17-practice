@@ -191,4 +191,97 @@ polymorphism in much more detail and show how to apply these rules to
 interfaces.
 
 ## 7. Logical Operators
+&nbsp;&nbsp;&nbsp;&nbsp;
+The logical operators, (&), (|), and (^), may be applied to both numeric and boolean
+data types; they are listed in Table 2.9. When they’re applied to boolean data types, they’re
+referred to as logical operators. Alternatively, when they’re applied to numeric data types,
+they’re referred to as bitwise operators, as they perform bitwise comparisons of the bits
+that compose the number. For the exam, though, you don’t need to know anything about
+numeric bitwise comparisons, so we’ll leave that educational aspect to other books.
 
+#### Table 2.9: Logical Operators
+| Operator | Example | Description                                                    |
+|:---------|:--------|:---------------------------------------------------------------|
+| Logical AND | a & b | Value is true only if both values are true.                    |
+| Logical OR | a \| b | Value is true if at least one of the values is true.           |
+| Logical XOR | a ^ b | Value is true only if one value is true and the other is false.|
+
+&nbsp;&nbsp;&nbsp;&nbsp;
+Here are some tips to help you remember this table:
+- AND is only true if both operands are true. 
+- Inclusive OR is only false if both operands are false. 
+- Exclusive OR is only true if the operands are different.
+
+&nbsp;&nbsp;&nbsp;&nbsp;
+Let’s take a look at some examples:
+```java
+boolean eyesClosed = true;
+boolean breathingSlowly = true;
+
+boolean resting = eyesClosed | breathingSlowly;
+boolean asleep = eyesClosed & breathingSlowly;
+boolean awake = eyesClosed ^ breathingSlowly;
+System.out.println(resting); // true
+System.out.println(asleep); // true
+System.out.println(awake); // false
+```
+## 8. Conditional Operators
+#### Table 2.10: Conditional Operators
+| Operator | Example | Description                                                                                                               |
+|:---------|:--------|:--------------------------------------------------------------------------------------------------------------------------|
+| Conditional AND | a && b | Value is true only if both values are true. If the left side is false, then the right side will not be evaluated.         |
+| Conditional OR | a \|\| b | Value is true if at least one of the values is true. If the left side is true, then the right side will not be evaluated. |
+
+&nbsp;&nbsp;&nbsp;&nbsp;
+The conditional operators, often called short-circuit operators, are nearly identical to the
+logical operators, & and |, except that the right side of the expression may never be evaluated if the final result 
+can be determined by the left side of the expression. For example, consider the following statement
+```java
+int hour = 10;
+boolean zooOpen = true || (hour < 4);
+System.out.println(zooOpen); // true
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;
+Referring to the truth tables, the value zooOpen can be false only if both sides of the
+expression are false. Since we know the left side is true, there’s no need to evaluate the
+right side, since no value of hour will ever make this code print false. In other words,
+hour could have been -10 or 892; the output would have been the same. Try it yourself
+with different values for hour!
+
+## 9. Avoiding a NullPointerException
+A more common example of where conditional operators are used is checking for null
+objects before performing an operation. In the following example, if duck is null, the program
+will throw a NullPointerException at runtime:
+```java
+if (duck != null & duck.getAge() < 5) { // Could throw a NullPointerException
+    // Do something
+}
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;
+The issue is that the logical AND (&) operator evaluates both sides of the expression. We
+could add a second if statement, but this could get unwieldy if we have a lot of variables to
+check. An easy-to-read solution is to use the conditional AND operator (&&):
+```java
+if (duck != null && duck.getAge() < 5) {
+    // Do something
+}
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;
+In this example, if duck is null, the conditional prevents a NullPointerException
+from ever being thrown, since the evaluation of duck.getAge() < 5 is never reached.
+
+## 10. Checking for Unperformed Side Effects
+Be wary of short-circuit behavior on the exam, as questions are known to alter a variable on
+the right side of the expression that may never be reached. This is referred to as an unperformed side effect. For example, what is the output of the following code?
+```java
+int rabbit = 6;
+boolean bunny = (rabbit >= 6) || (++rabbit <= 7);
+System.out.println(rabbit);
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;
+Because rabbit >= 6 is true, the increment operator on the right side of the expression
+is never evaluated, so the output is 6.
