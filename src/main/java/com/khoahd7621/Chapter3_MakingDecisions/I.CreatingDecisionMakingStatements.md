@@ -209,3 +209,123 @@ the variable at all.
 >     data = 10; // DOES NOT COMPILE
 > }
 > ```
+
+### a. Pattern Variables and Expressions
+Pattern matching includes expressions that can be used to filter data out, such as in the following example:
+```java
+void printIntegersGreaterThan5(Number number) {
+    if (number instanceof Integer data && data.compareTo(5) > 0)
+        System.out.print(data);
+}
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;
+We can apply a number of filters, or patterns, so that the if statement is executed only in
+specific circumstances. Notice that we’re using the pattern variable in an expression in the
+same line in which it is declared.
+
+### b. Subtypes
+The type of the pattern variable must be a subtype of the variable on the left side of the
+expression. It also cannot be the same type. This rule does not exist for traditional instanceof
+operator expressions, though. Consider the following two uses of the instanceof operator:
+```java
+Integer value = 123;
+if (value instanceof Integer) {}
+if (value instanceof Integer data) {} // DOES NOT COMPILE
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;
+While the second line compiles, the last line does not compile because pattern matching
+requires that the pattern variable type Integer be a strict subtype of Integer.
+
+> **Limitations of Subtype Enforcement** <br />
+> The compiler has some limitations on enforcing pattern matching types when we mix
+classes and interfaces, which will make more sense after you read Chapter 7, “Beyond
+Classes.” For example, given the non-final class Number and interface List, this does
+compile even though they are unrelated:
+> ```java
+> Number value = 123;
+> if (value instanceof List) {}
+> if (value instanceof List data) {}
+> ```
+
+### c. Flow Scoping
+The compiler applies flow scoping when working with pattern matching. Flow scoping
+means the variable is only in scope when the compiler can definitively determine its type.
+Flow scoping is unlike any other type of scoping in that it is not strictly hierarchical like instance, class, or local scoping. It is determined by the compiler based on the branching and
+flow of the program.
+
+&nbsp;&nbsp;&nbsp;&nbsp;
+Given this information, can you see why the following does not compile?
+
+```java
+void printIntegersOrNumbersGreaterThan5(Number number) {
+    if (number instanceof Integer data || data.compareTo(5) > 0)
+        System.out.print(data);
+}
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;
+If the input does not inherit Integer, the data variable is undefined. Since the compiler
+cannot guarantee that data is an instance of Integer, data is not in scope, and the code
+does not compile.
+
+&nbsp;&nbsp;&nbsp;&nbsp;
+What about this example?
+
+```java
+void printIntegerTwice(Number number) {
+    if (number instanceof Integer data)
+        System.out.print(data.intValue());
+    System.out.print(data.intValue()); // DOES NOT COMPILE
+}
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;
+Since the input might not have inherited Integer, data is no longer in scope after the
+if statement. Oh, so you might be thinking that the pattern variable is then only in scope
+inside the if statement, right? Well, not exactly! Consider the following example that
+does compile:
+
+```java
+void printOnlyIntegers(Number number) {
+    if (!(number instanceof Integer data))
+        return;
+    System.out.print(data.intValue());
+}
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;
+It might surprise you to learn this code does compile. Eek! What is going on here? The
+method returns if the input does not inherit Integer. This means that when the last line of
+the method is reached, the input must inherit Integer, and therefore data stays in scope
+even after the if statement ends.
+
+> **Flow Scoping and else Branches** <br />
+> If the last code sample confuses you, don’t worry: you’re not alone! Another way to think
+about it is to rewrite the logic to something equivalent that uses an else statement:
+> ```java
+> void printOnlyIntegers(Number number) { 
+>     if (!(number instanceof Integer data))
+>         return;
+>     else
+>         System.out.print(data.intValue());
+> }
+> ```
+> We can now go one step further and reverse the if and else branches by inverting the
+boolean expression:
+> ```java
+> void printOnlyIntegers(Number number) { 
+>     if (number instanceof Integer data)
+>         System.out.print(data.intValue());
+>     else
+>         return;
+> }
+> ```
+> Our new code is equivalent to our original and better demonstrates how the compiler was
+able to determine that data was in scope only when number is an Integer.
+
+&nbsp;&nbsp;&nbsp;&nbsp;
+Make sure you understand the way flow scoping works. In particular, it is possible to use
+a pattern variable outside of the if statement, but only when the compiler can definitively
+determine its type.
