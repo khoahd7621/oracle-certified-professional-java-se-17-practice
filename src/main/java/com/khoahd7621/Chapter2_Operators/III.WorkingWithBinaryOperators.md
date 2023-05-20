@@ -107,8 +107,9 @@ float y = 2.1;
 var z = x + y;
 ```
 This is actually a trick question, as the second line does not compile! As you may
-remember from Chapter 1, floating-point literals are assumed to be double unless postfixed with an f, as in 2.1f. If the value of y was set properly to 2.1f, then the promotion would be similar to the previous example, with both operands being promoted to a
-double, and the result z would be a double value.
+remember from Chapter 1, floating-point literals are assumed to be double unless postfixed with an f, as in 2.1f. 
+If the value of y was set properly to 2.1f, then the promotion would be similar to the previous example, with both operands 
+being promoted to a double, and the result z would be a double value.
 3. What is the data type of ```x * y```?
 ```java 
 short x = 10;
