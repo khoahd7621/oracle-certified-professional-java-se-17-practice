@@ -286,4 +286,126 @@ it is entirely optional.
 > Java 17 also supports pattern matching within switch expressions, but
 since this is a Preview feature, it is not in scope for the exam.
 
+## 6. Returning Consistent Data Types
 
+The first rule of using a switch expression is probably the easiest. You can’t return incompatible or random data types.
+For example, can you see why three of the lines of the following code do not compile?
+
+```java
+int measurement = 10;
+int size = switch(measurement) {    
+    case 5 -> 1;
+    case 10 -> (short)2;
+    default -> 5;
+    case 20 -> "3"; // DOES NOT COMPILE
+    case 40 -> 4L; // DOES NOT COMPILE
+    case 50 -> null; // DOES NOT COMPILE
+};
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;
+Notice that the second case expression returns a short, but that can be implicitly cast
+to an int. In this manner, the values have to be consistent with size, but they do not all
+have to be the same data type. The last three case expressions do not compile because each
+returns a type that cannot be assigned to the int variable.
+
+## 7. Applying a *case* Block
+A switch expression supports both an expression and a block in the case and default
+branches. Like a regular block, a case block is one that is surrounded by braces ({}). It also
+includes a yield statement if the switch expression returns a value. For example, the following
+uses a mix of case expressions and blocks:
+
+```java
+int fish = 5;
+int length = 12;
+var name = switch(fish) {
+    case 1 -> "Goldfish";
+    case 2 -> {yield "Trout";}
+    case 3 -> {
+        if (length > 10) yield "Blobfish";
+        else yield "Green";
+    }
+    default -> "Swordfish";
+};
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;
+The yield keyword is equivalent to a return statement within a switch expression and
+is used to avoid ambiguity about whether you meant to exit the block or method around the
+switch expression.
+
+> **Watch Semicolons in *switch* Expressions**
+> 
+> Unlike a regular switch statement, a switch expression can be used with the assignment
+operator and requires a semicolon when doing so. Furthermore, semicolons are required
+for case expressions but cannot be used with case blocks.
+> ```java
+> var name = switch(fish) {
+>     case 1 -> "Goldfish" // DOES NOT COMPILE (missing semicolon)
+>     case 2 -> {yield "Trout";}; // DOES NOT COMPILE (extra semicolon)
+>     ...
+> } // DOES NOT COMPILE (missing semicolon)
+> ```
+> A bit confusing, right? It’s just one of those things you have to train yourself to spot
+on the exam.
+
+## 8. Covering All Possible Values
+The last rule about switch expressions is probably the one the exam is most likely to try to
+trick you on: a switch expression that returns a value must handle all possible input values.
+And as you saw earlier, when it does not return a value, it is optional. <br />
+
+&nbsp;&nbsp;&nbsp;&nbsp;
+Let’s try this out. Given the following code, what is the value of type if canis is 5?
+
+```java
+String type = switch(canis) { // DOES NOT COMPILE
+    case 1 -> "dog";
+    case 2 -> "wolf";
+    case 3 -> "coyote";
+};
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;
+There’s no case branch to cover 5 (or 4, -1, 0, etc.), so should the switch expression
+return null, the empty string, undefined, or some other value? When adding switch expressions to the Java language, the authors decided this behavior would be unsupported. Every
+switch expression must handle all possible values of the switch variable. As a developer,
+there are two ways to address this:
+- Add a default branch.
+- If the switch expression takes an enum value, add a case branch for every possible
+  enum value.
+
+&nbsp;&nbsp;&nbsp;&nbsp;
+In practice, the first solution is the one most often used. The second solution applies only
+to switch expressions that take an enum. You can try writing case statements for all possible
+int values, but we promise it doesn’t work! Even smaller types like byte are not permitted by
+the compiler, despite there being only 256 possible values.
+
+&nbsp;&nbsp;&nbsp;&nbsp;
+For enums, the second solution works well when the number of enum values is relatively
+small. For example, consider the following enum definition and method:
+
+```java
+enum Season {WINTER, SPRING, SUMMER, FALL}
+
+String getWeather(Season value) {
+    return switch(value) {
+        case WINTER -> "Cold";
+        case SPRING -> "Rainy";
+        case SUMMER -> "Hot";
+        case FALL -> "Warm";
+    };
+}
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;
+Since all possible permutations of Season are covered, a default branch is not required
+in this switch expression. You can include an optional default branch, though, even if
+you cover all known values.
+
+> **Tips**
+> 
+> What happens if you use an enum with three values and later someone
+adds a fourth value? Any switch expressions that use the enum without
+a default branch will suddenly fail to compile. If this was done frequently, you might have a lot of code to fix! For this reason, consider
+including a default branch in every switch expression, even those that
+involve enum values.
