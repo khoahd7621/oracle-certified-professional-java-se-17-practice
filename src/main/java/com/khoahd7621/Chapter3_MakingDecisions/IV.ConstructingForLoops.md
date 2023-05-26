@@ -145,3 +145,165 @@ without issue. It is actually an infinite loop that will print the same statemen
 This example reinforces the fact that the components of the for loop are each optional.
 Note that the semicolons separating the three sections are required, as for( ) without
 any semicolons will not compile.
+
+### &emsp; 2. Adding Multiple Terms to the *for* Statement
+```java
+int x = 0;
+for (long y = 0, z = 4; x < 5 && y < 10; x++, y++) {
+    System.out.print(y + " "); 
+}
+System.out.print(x + " ");
+```
+
+This code demonstrates three variations of the for loop you may not have seen.
+First, you can declare a variable, such as x in this example, before the loop begins and
+use it after it completes. Second, your initialization block, boolean expression, and
+update statements can include extra variables that may or may not reference each
+other. For example, z is defined in the initialization block and is never used. Finally,
+the update statement can modify multiple variables. This code will print the following
+when executed: *0 1 2 3 4 5*
+
+### &emsp; 3. Re-declaring a Variable in the Initialization Block
+```java
+int x = 0;
+for(int x = 4; x < 5; x++) // DOES NOT COMPILE
+    System.out.print(x + " ");
+```
+
+This example looks similar to the previous one, but it does not compile because of the
+initialization block. The difference is that x is repeated in the initialization block after
+already being declared before the loop, resulting in the compiler stopping because of
+a duplicate variable declaration. We can fix this loop by removing the declaration of x
+from the for loop as follows:
+
+```java
+int x = 0;
+for(x = 0; x < 5; x++)
+    System.out.print(x + " ");
+```
+Note that this variation will now compile because the initialization block simply assigns
+a value to x and does not declare it.
+
+### &emsp; 4. Using Incompatible Data Types in the Initialization Block
+```java
+int x = 0;
+for (long y = 0, int z = 4; x < 5; x++) // DOES NOT COMPILE
+    System.out.print(y + " ");
+```
+
+Like the third example, this code will not compile, although this time for a different
+reason. The variables in the initialization block must all be of the same type. In the
+multiple-terms example, y and z were both long, so the code compiled without issue;
+but in this example, they have different types, so the code will not compile.
+
+### &emsp; 5. Using Loop Variables Outside the Loop
+```java
+for (long y = 0, x = 4; x < 5 && y < 10; x++, y++)
+    System.out.print(y + " ");
+System.out.print(x); // DOES NOT COMPILE
+```
+
+We covered this already at the start of this section, but it is so important for passing the
+exam that we discuss it again here. If you notice, x is defined in the initialization block
+of the loop and then used after the loop terminates. Since x was only scoped for the
+loop, using it outside the loop will cause a compiler error.
+
+> **Modifying Loop Variables**: <br />
+> As a general rule, it is considered a poor coding practice to modify loop variables due to the
+unpredictability of the result, such as in the following examples:
+> ```java
+> for (int i = 0; i < 10; i++)
+>     i = 0;
+> for (int j = 1; j < 10; j++)
+>     j++;
+> ```
+
+## 4. The for-each loop
+The *for-each* loop is a specialized structure designed to iterate over arrays and various
+Collections Framework classes, as presented below:
+
+```java
+for (datatype instance: collection) {
+    // Body
+}
+```
+
+&emsp;&emsp;
+The for-each loop declaration is composed of an initialization section and an object to be
+iterated over. The right side of the for-each loop must be one of the following:
+- A built-in Java array
+- An object whose type implements java.lang.Iterable
+
+&emsp;&emsp;
+We cover what implements means in Chapter 7, but for now you just need to know
+that the right side must be an array or collection of items, such as a List or a Set. For the
+exam, you should know that this does not include all of the Collections Framework classes or interfaces, but only those that implement or extend that Collection interface. For
+example, Map is not supported in a for-each loop, although Map does include methods that
+return Collection instances.
+
+&emsp;&emsp;
+The left side of the for-each loop must include a declaration for an instance of a variable
+whose type is compatible with the type of the array or collection on the right side of the
+statement. On each iteration of the loop, the named variable on the left side of the statement
+is assigned a new value from the array or collection on the right side of the statement.
+
+&emsp;&emsp;
+Compare these two methods that both print the values of an array, one using a traditional
+for loop and the other using a for-each loop:
+
+```java
+public void printNames(String[] names) {
+    for (int counter = 0; counter < names.length; counter++)
+        System.out.println(names[counter]);
+} 
+
+public void printNames(String[] names) {
+    for (var name : names)
+        System.out.println(name);
+}
+```
+
+&emsp;&emsp;
+The for-each loop is a lot shorter, isn’t it? We no longer have a counter loop variable
+that we need to create, increment, and monitor. Like using a for loop in place of a while
+loop, for-each loops are meant to reduce boilerplate code, making code easier to read/write,
+and freeing you to focus on the parts of your code that really matter.
+
+&emsp;&emsp;
+We can also use a for-each loop on a List, since it implements Iterable.
+
+```java
+public void printNames(List<String> names) {
+    for (var name : names)
+        System.out.println(name);
+}
+```
+
+&emsp;&emsp;
+We cover generics in detail in Chapter 9, “Collections and Generics.” For this chapter, you
+just need to know that on each iteration, a for-each loop assigns a variable with the same
+type as the generic argument. In this case, name is of type String.
+
+&emsp;&emsp;
+So far, so good. What about the following examples?
+
+```java
+String birds = "Jay";
+for (String bird : birds) // DOES NOT COMPILE
+    System.out.print(bird + " "); 
+
+String[] sloths = new String[3];
+for (int sloth : sloths) // DOES NOT COMPILE
+    System.out.print(sloth + " ");
+```
+
+&emsp;&emsp;
+The first for-each loop does not compile because String cannot be used on the right side
+of the statement. While a String may represent a list of characters, it has to actually be an
+array or implement Iterable. 
+
+&emsp;&emsp;
+The second example does not compile because the loop type
+on the left side of the statement is int and doesn’t match the expected type of String.
+
+
