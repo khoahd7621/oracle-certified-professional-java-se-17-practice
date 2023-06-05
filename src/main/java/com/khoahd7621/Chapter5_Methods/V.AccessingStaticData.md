@@ -299,6 +299,218 @@ default interface method without a reference, much the same way that
 within a class, a static method cannot call an instance method without
 a reference.
 
+## IV. *static* Variable Modifiers
+Referring back to Table 5.3, static variables can be declared with the same modifiers as instance 
+variables, such as final, transient, and volatile. While some static variables are meant to
+change as the program runs, like our count example, others are meant to never change. This
+type of static variable is known as a constant. It uses the final modifier to ensure the variable
+never changes. <br />
 
+&emsp;&emsp;
+Constants use the modifier static final and a different naming convention than
+other variables. They use all uppercase letters with underscores between “words.” Here’s an example:
 
+```java
+public class ZooPen {
+    private static final int NUM_BUCKETS = 45;
+    public static void main(String[] args) {
+        NUM_BUCKETS = 5; // DOES NOT COMPILE
+    }
+}
+```
 
+&emsp;&emsp;
+The compiler will make sure that you do not accidentally try to update a final variable.
+This can get interesting. Do you think the following compiles?
+
+```java
+import java.util.*;
+public class ZooInventoryManager {
+    private static final String[] treats = new String[10];
+    public static void main(String[] args) {
+        treats[0] = "popcorn";
+    }
+}
+```
+
+&emsp;&emsp;
+It actually does compile since treats is a reference variable. We are allowed to modify
+the referenced object or array’s contents. All the compiler can do is check that we don’t try
+to reassign treats to point to a different object. <br />
+
+&emsp;&emsp;
+The rules for static final variables are similar to instance final variables, except
+they do not use static constructors (there is no such thing!) and use static initializers
+instead of instance initializers.
+
+```java
+public class Panda {
+    final static String name = "Ronda";
+    static final int bamboo;
+    static final double height; // DOES NOT COMPILE
+    static { bamboo = 5;}
+}
+```
+
+&emsp;&emsp;
+The name variable is assigned a value when it is declared, while the bamboo variable is
+assigned a value in a static initializer. The height variable is not assigned a value 
+anywhere in the class definition, so that line does not compile. Remember, final variables must
+be initialized with a value. Next, we cover static initializers.
+
+## V. *static* Initializers
+
+In Chapter 1, we covered instance initializers that looked like unnamed methods—just code
+inside braces. static initializers look similar. They add the static keyword to specify that they
+should be run when the class is first loaded. Here’s an example:
+
+```java
+private static final int NUM_SECONDS_PER_MINUTE;
+private static final int NUM_MINUTES_PER_HOUR;
+private static final int NUM_SECONDS_PER_HOUR;
+static {
+    NUM_SECONDS_PER_MINUTE = 60;
+    NUM_MINUTES_PER_HOUR = 60;
+}
+static {
+    NUM_SECONDS_PER_HOUR
+        = NUM_SECONDS_PER_MINUTE * NUM_MINUTES_PER_HOUR;
+}
+```
+
+&emsp;&emsp;
+All static initializers run when the class is first used, in the order they are defined.
+The statements in them run and assign any static variables as needed. There is something
+interesting about this example. We just got through saying that final variables aren’t
+allowed to be reassigned. The key here is that the static initializer is the first assignment.
+And since it occurs up front, it is okay. <br />
+
+&emsp;&emsp;
+Let’s try another example to make sure you understand the distinction:
+
+```java
+14: private static int one;
+15: private static final int two;
+16: private static final int three = 3;
+17: private static final int four; // DOES NOT COMPILE
+18: static {
+19:     one = 1;
+20:     two = 2;
+21:     three = 3; // DOES NOT COMPILE
+22:     two = 4; // DOES NOT COMPILE
+23: }
+```
+
+> **Try to Avoid *static* and *Instance* Initializers** <br />
+> 
+> Using static and instance initializers can make your code much harder to read. 
+Everything that could be done in an instance initializer could be done in a constructor instead.
+Many people find the constructor approach easier to read. <br />
+> 
+> There is a common case to use a static initializer: when you need to initialize a static
+field and the code to do so requires more than one line. This often occurs when you want to
+initialize a collection like an ArrayList or a HashMap. When you do need to use a static
+initializer, put all the static initialization in the same block. That way, the order is obvious.
+
+## VI. *static* Imports
+
+In Chapter 1, you saw that you can import a specific class or all the classes in a package.
+If you haven’t seen ArrayList or List before, don’t worry, because we cover them in detail in
+Chapter 9, “Collections and Generics.”
+
+```java
+import java.util.ArrayList;
+import java.util.*;
+```
+
+&emsp;&emsp;
+We could use this technique to import two classes:
+
+```java
+import java.util.List;
+import java.util.Arrays;
+public class Imports {
+    public static void main(String[] args) {
+        List<String> list = Arrays.asList("one", "two");
+    }
+}
+```
+
+&emsp;&emsp;
+Imports are convenient because you don’t need to specify where each class comes from
+each time you use it. There is another type of import called a static import. Regular imports
+are for importing classes, while static imports are for importing static members of
+classes like variables and methods. <br />
+
+&emsp;&emsp;
+Just like regular imports, you can use a wildcard or import a specific member. The idea
+is that you shouldn’t have to specify where each static method or variable comes from each
+time you use it. An example of when static imports shine is when you are referring to a lot of
+constants in another class. <br />
+
+&emsp;&emsp;
+We ran rewrite our previous example to use a static import. Doing so yields the following:
+
+```java
+import java.util.List;
+import static java.util.Arrays.asList; // static import
+public class ZooParking {
+    public static void main(String[] args) {
+        List<String> list = asList("one", "two"); // No Arrays. prefix
+    }
+}
+```
+
+&emsp;&emsp;
+In this example, we are specifically importing the asList method. This means that any
+time we refer to asList in the class, it will call Arrays.asList(). <br />
+
+&emsp;&emsp;
+An interesting case is what would happen if we created an asList method in our
+ZooParking class. Java would give it preference over the imported one, and the method we
+coded would be used. <br />
+
+&emsp;&emsp;
+The exam will try to trick you by misusing static imports. This example shows almost
+everything you can do wrong. Can you figure out what is wrong with each one?
+
+```java
+1: import static java.util.Arrays;      // DOES NOT COMPILE
+2: import static java.util.Arrays.asList;
+3: static import java.util.Arrays.*;    // DOES NOT COMPILE
+4: public class BadZooParking {
+5:      public static void main(String[] args) {
+6:          Arrays.asList("one");       // DOES NOT COMPILE
+7:      }
+8: }
+```
+
+&emsp;&emsp;
+Line 1 tries to use a static import to import a class. Remember that static
+imports are only for importing static members like a method or variable. Regular
+imports are for importing a class. Line 3 tries to see whether you are paying attention
+to the order of keywords. The syntax is import static and not vice versa. Line 6
+is sneaky. The asList method is imported on line 2. However, the Arrays class is
+not imported anywhere. This makes it okay to write asList("one") but not
+Arrays.asList("one"). <br />
+
+&emsp;&emsp;
+There’s only one more scenario with static imports. In Chapter 1, you learned that
+importing two classes with the same name gives a compiler error. This is true of static
+imports as well. The compiler will complain if you try to explicitly do a static import
+of two methods with the same name or two static variables with the same name.
+Here’s an example:
+
+```java
+import static zoo.A.TYPE;
+import static zoo.B.TYPE; // DOES NOT COMPILE
+```
+
+&emsp;&emsp;
+Luckily, when this happens, we can just refer to the static members via their class name
+in the code instead of trying to use a static import.
+
+> **Tip**: <br />
+> In a large program, static imports can be overused. When importing
+from too many places, it can be hard to remember where each static
+member comes from. Use them sparingly!
