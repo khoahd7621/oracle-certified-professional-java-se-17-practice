@@ -1,0 +1,474 @@
+# Inheriting Members
+
+Now that we’ve created a class, what can we do with it? One of Java’s biggest strengths is
+leveraging its inheritance model to simplify code. For example, let’s say you have five classes,
+each of which extends from the Animal class. Furthermore, each class defines an eat() method
+with an identical implementation. In this scenario, it’s a lot better to define eat() once in the
+Animal class than to have to maintain the same method in five separate classes. <br />
+
+&emsp;&emsp;
+Inheriting a class not only grants access to inherited methods in the parent class but also
+sets the stage for collisions between methods defined in both the parent class and the 
+subclass. In this section, we review the rules for method inheritance and how Java handles such
+scenarios. <br/>
+
+&emsp;&emsp;
+We refer to the ability of an object to take on many different forms as polymorphism. We
+cover this more in the next chapter, but for now you just need to know that an object can be
+used in a variety of ways, in part based on the reference variable used to call the object.
+
+## I. Overriding a Method
+
+What if a method with the same signature is defined in both the parent and child classes? For
+example, you may want to define a new version of the method and have it behave differently
+for that subclass. The solution is to override the method in the child class. In Java, overriding
+a method occurs when a subclass declares a new implementation for an inherited method
+with the same signature and compatible return type.
+
+> **Note**: <br/>
+> Remember that a method signature is composed of the name of the
+method and method parameters. It does not include the return type,
+access modifiers, optional specifiers, or any declared exceptions.
+
+&emsp;&emsp;
+When you override a method, you may still reference the parent version of the method
+using the super keyword. In this manner, the keywords this and super allow you to select
+between the current and parent versions of a method, respectively. We illustrate this with the
+following example:
+
+```java
+public class Marsupial {
+    public double getAverageWeight() {
+        return 50;
+    }
+}
+public class Kangaroo extends Marsupial {
+    public double getAverageWeight() {
+        return super.getAverageWeight()+20;
+    }
+    public static void main(String[] args) {
+        System.out.println(new Marsupial().getAverageWeight()); // 50.0
+        System.out.println(new Kangaroo().getAverageWeight()); // 70.0
+    }
+}
+```
+
+&emsp;&emsp;
+In this example, the Kangaroo class overrides the getAverageWeight() method but in
+the process calls the parent version using the super reference.
+
+> **Method Overriding Infinite Calls** <br/>
+> You might be wondering whether the use of super in the previous example was required.
+For example, what would the following code output if we removed the super keyword?
+> ```java
+>  public double getAverageWeight() {
+>       return getAverageWeight() + 20; // StackOverflowError
+>  }
+> ```
+> In this example, the compiler would not call the parent Marsupial method; it would call
+the current Kangaroo method. The application will attempt to call itself infinitely and 
+produce a StackOverflowError at runtime.
+
+&emsp;&emsp;
+To override a method, you must follow a number of rules. The compiler performs the following checks when you override a method:
+1. The method in the child class must have the same signature as the method in the
+   parent class.
+2. The method in the child class must be at least as accessible as the method in the
+   parent class.
+3. The method in the child class may not declare a checked exception that is new or
+   broader than the class of any exception declared in the parent class method.
+4. If the method returns a value, it must be the same or a subtype of the method in the 
+   parent class, known as *covariant return types*.
+
+&emsp;&emsp;
+While these rules may seem confusing or arbitrary at first, they are needed for consistency.
+Without these rules in place, it is possible to create contradictions within the Java language.
+
+## II. Rule #1: Method Signatures
+The first rule of overriding a method is somewhat self-explanatory. If two methods have the
+same name but different signatures, the methods are overloaded, not overridden. Overloaded
+methods are considered independent and do not share the same polymorphic properties as
+overridden methods.
+
+> **Note**: <br/>
+> We covered overloading a method in Chapter 5, and it is similar to 
+overriding a method, as both involve defining a method using the same name.
+Overloading differs from overriding in that overloaded methods use a
+different parameter list. For the exam, it is important that you understand
+this distinction and that overridden methods have the same signature and
+a lot more rules than overloaded methods.
+
+## III. Rule #2: Access Modifiers
+What’s the purpose of the second rule about access modifiers? Let’s try an illustrative example:
+```java
+public class Camel {
+    public int getNumberOfHumps() {
+        return 1;
+    } 
+}
+public class BactrianCamel extends Camel {
+    private int getNumberOfHumps() { // DOES NOT COMPILE
+        return 2;
+    } 
+}
+```
+
+&emsp;&emsp;
+In this example, BactrianCamel attempts to override the getNumberOfHumps() method
+defined in the parent class but fails because the access modifier private is more restrictive
+than the one defined in the parent version of the method. Let’s say BactrianCamel was
+allowed to compile, though. Would this class compile?
+
+```java
+public class Rider {
+    public static void main(String[] args) {
+        Camel c = new BactrianCamel();
+        System.out.print(c.getNumberOfHumps()); // ???
+    } 
+}
+```
+
+&emsp;&emsp;
+The answer is, we don’t know. The reference type for the object is Camel, where the
+method is declared public, but the object is actually an instance of type BactrianCamel,
+where the method is declared private. Java avoids these types of ambiguity problems by
+limiting overriding a method to access modifiers that are as accessible or more accessible
+than the version in the inherited method.
+
+## IV. Rule #3: Checked Exceptions
+The third rule says that overriding a method cannot declare new checked exceptions or
+checked exceptions broader than the inherited method. This is done for polymorphic reasons
+similar to limiting access modifiers. In other words, you could end up with an object that is
+more restrictive than the reference type it is assigned to, resulting in a checked exception that
+is not handled or declared. One implication of this rule is that overridden methods are free
+to declare any number of new unchecked exceptions.
+
+> **Note**: <br/>
+> If you don’t know what a checked or unchecked exception is, don’t worry.
+We cover this in Chapter 11, “Exceptions and Localization.” For now, you
+just need to know that the rule applies only to checked exceptions. It’s also
+helpful to know that both IOException and FileNotFoundException
+are checked exceptions and that FileNotFoundException is a subclass
+of IOException.
+
+&emsp;&emsp;
+Let’s try an example:
+
+```java
+public class Reptile {
+    protected void sleep() throws IOException {}
+    protected void hide() {}
+    protected void exitShell() throws FileNotFoundException {}
+}
+
+public class GalapagosTortoise extends Reptile {
+    public void sleep() throws FileNotFoundException {}
+    public void hide() throws FileNotFoundException {} // DOES NOT COMPILE
+    public void exitShell() throws IOException {} // DOES NOT COMPILE
+}
+```
+
+&emsp;&emsp;
+In this example, we have three overridden methods. These overridden methods use
+the more accessible public modifier, which is allowed per our second rule for 
+overridden methods. The first overridden method sleep() in GalapagosTortoise compiles
+without issue because the declared exception is narrower than the exception declared in the
+parent class. <br />
+
+&emsp;&emsp;
+The overridden hide() method does not compile because it declares a new checked
+exception not present in the parent declaration. The overridden exitShell() also does not 
+compile, since IOException is a broader checked exception than FileNotFoundException. We revisit
+these exception classes, including memorizing which ones are subclasses of each other, in
+Chapter 11.
+
+## V. Rule #4: Covariant Return Types
+The fourth and final rule around overriding a method is probably the most complicated, as
+it requires knowing the relationships between the return types. The overriding method must
+use a return type that is covariant with the return type of the inherited method. <br />
+
+&emsp;&emsp;
+Let’s try an example for illustrative purposes:
+
+```java
+public class Rhino {
+    protected CharSequence getName() {
+        return "rhino";
+    }
+    protected String getColor() {
+        return "grey, black, or white";
+    } 
+}
+
+public class JavanRhino extends Rhino {
+    public String getName() {
+        return "javan rhino";
+    }
+    public CharSequence getColor() { // DOES NOT COMPILE
+        return "grey";
+    } 
+}
+```
+
+&emsp;&emsp;
+The subclass JavanRhino attempts to override two methods from Rhino: getName()
+and getColor(). Both overridden methods have the same name and signature as the 
+inherited methods. The overridden methods also have a broader access modifier, public, than
+the inherited methods. Remember, a broader access modifier is acceptable in an overridden method. <br />
+
+&emsp;&emsp;
+From Chapter 4, “Core APIs,” we learned that String implements the CharSequence
+interface, making String a subtype of CharSequence. Therefore, the return type of
+getName() in JavanRhino is covariant with the return type of getName() in Rhino. <br />
+
+&emsp;&emsp;
+On the other hand, the overridden getColor() method does not compile because
+CharSequence is not a subtype of String. To put it another way, all String values are
+CharSequence values, but not all CharSequence values are String values. For instance, a
+StringBuilder is a CharSequence but not a String. For the exam, you need to know if
+the return type of the overriding method is the same as or a subtype of the return type of the
+inherited method.
+
+> **Tip**: <br/>
+> A simple test for covariance is the following: given an inherited return
+type A and an overriding return type B, can you assign an instance of B
+to a reference variable for A without a cast? If so, then they are covariant.
+This rule applies to primitive types and object types alike. If one of the
+return types is void, then they both must be void, as nothing is covariant with void except itself.
+
+&emsp;&emsp;
+That’s everything you need to know about overriding methods for this chapter. In
+Chapter 9, “Collections and Generics,” we revisit overriding methods involving generics.
+There’s always more to learn!
+
+> **Marking Methods with the *@Override* Annotation**: <br/>
+> An annotation is a metadata tag that provides additional information about your code.
+You can use the @Override annotation to tell the compiler that you are attempting to
+override a method.
+> ```java
+>   public class Fish {
+>       public void swim() {};
+>   }
+>   public class Shark extends Fish {
+>       @Override
+>       public void swim() {};
+>   }
+> ```
+> When used correctly, the annotation doesn’t impact the code. On the other hand, when
+used incorrectly, this annotation can prevent you from making a mistake. The following
+does not compile because of the presence of the @Override annotation:
+> ```java
+>   public class Fish {
+>       public void swim() {};
+>   }
+>   public class Shark extends Fish {
+>       @Override
+>       public void swim(int speed) {}; // DOES NOT COMPILE
+>   }
+> ```
+> The compiler sees that you are attempting a method override and looks for an inherited
+version of swim() that takes an int value. Since the compiler doesn’t find one, it reports
+an error. While knowing advanced topics (such as how to create annotations) is not required
+for the exam, knowing how to use them properly is.
+
+## VI. Re-declaring private Methods
+
+What happens if you try to override a private method? In Java, you can’t override private
+methods since they are not inherited. Just because a child class doesn’t have access to the
+parent method doesn’t mean the child class can’t define its own version of the method. It
+just means, strictly speaking, that the new method is not an overridden version of the parent
+class’s method. <br />
+
+&emsp;&emsp;
+Java permits you to redeclare a new method in the child class with the same or modified
+signature as the method in the parent class. This method in the child class is a separate and
+independent method, unrelated to the parent version’s method, so none of the rules for 
+overriding methods is invoked. For example, these two declarations compile:
+
+```java
+public class Beetle {
+    private String getSize() {
+        return "Undefined";
+    } 
+}
+ 
+public class RhinocerosBeetle extends Beetle {
+    private int getSize() {
+        return 5;
+    } 
+}
+```
+
+&emsp;&emsp;
+Notice that the return type differs in the child method from String to int. In this
+example, the method getSize() in the parent class is redeclared, so the method in the child
+class is a new method and not an override of the method in the parent class. <br />
+
+&emsp;&emsp;
+What if getSize() method was declared public in Beetle? In this case, the method in
+RhinocerosBeetle would be an invalid override. The access modifier in RhinocerosBeetle
+is more restrictive, and the return types are not covariant.
+
+## VII. Hiding Static MethodsA static method cannot be overridden because class objects do not inherit from each other in
+the same way as instance objects. On the other hand, they can be hidden. A hidden method
+occurs when a child class defines a static method with the same name and signature as an
+inherited static method defined in a parent class. Method hiding is similar to but not exactly
+the same as method overriding. The previous four rules for overriding a method must be 
+followed when a method is hidden. In addition, a new fifth rule is added for hiding a method: <br />
+
+5. The method defined in the child class must be marked as static if it is marked as
+   static in a parent class.
+
+&emsp;&emsp;
+Put simply, it is method hiding if the two methods are marked static and method 
+overriding if they are not marked static. If one is marked static and the other is not, the
+class will not compile. <br />
+
+&emsp;&emsp;
+Let’s review some examples of the new rule:
+
+```java
+public class Bear {
+    public static void eat() {
+        System.out.println("Bear is eating");
+    } 
+}
+
+public class Panda extends Bear {
+    public static void eat() {
+        System.out.println("Panda is chewing");
+    }
+    public static void main(String[] args) {
+        eat();
+    } 
+}
+```
+
+&emsp;&emsp;
+In this example, the code compiles and runs. The eat() method in the Panda class hides
+the eat() method in the Bear class, printing "Panda is chewing" at runtime. Because
+they are both marked as static, this is not considered an overridden method. That said,
+there is still some inheritance going on. If you remove the eat() declaration in the Panda
+class, then the program prints "Bear is eating" instead. <br />
+
+&emsp;&emsp;
+See if you can figure out why each of the method declarations in the SunBear class does
+not compile:
+
+```java
+public class Bear {
+    public static void sneeze() {
+        System.out.println("Bear is sneezing");
+    }
+    public void hibernate() {
+        System.out.println("Bear is hibernating");
+    }
+    public static void laugh() {
+        System.out.println("Bear is laughing");
+    }
+}
+
+public class SunBear extends Bear {
+    public void sneeze() { // DOES NOT COMPILE
+        System.out.println("Sun Bear sneezes quietly");
+    }
+    public static void hibernate() { // DOES NOT COMPILE
+        System.out.println("Sun Bear is going to sleep");
+    }
+    protected static void laugh() { // DOES NOT COMPILE
+        System.out.println("Sun Bear is laughing");
+    }
+}
+```
+
+&emsp;&emsp;
+In this example, sneeze() is marked static in the parent class but not in the child
+class. The compiler detects that you’re trying to override using an instance method. 
+However, sneeze() is a static method that should be hidden, causing the compiler to generate
+an error. The second method, hibernate(), does not compile for the opposite reason. The
+method is marked static in the child class but not in the parent class. <br />
+
+&emsp;&emsp;
+Finally, the laugh() method does not compile. Even though both versions of the method
+are marked static, the version in SunBear has a more restrictive access modifier than the one it
+inherits, and it breaks the second rule for overriding methods. Remember, the four rules for
+overriding methods must be followed when hiding static methods.
+
+## VIII. Hiding Variables
+
+As you saw with method overriding, there are a lot of rules when two methods have the
+same signature and are defined in both the parent and child classes. Luckily, the rules for
+variables with the same name in the parent and child classes are much simpler. In fact, Java
+doesn’t allow variables to be overridden. Variables can be hidden, though. <br />
+
+&emsp;&emsp;
+A hidden variable occurs when a child class defines a variable with the same name as an
+inherited variable defined in the parent class. This creates two distinct copies of the variable
+within an instance of the child class: one instance defined in the parent class and one defined
+in the child class. <br />
+
+&emsp;&emsp;
+As when hiding a static method, you can’t override a variable; you can only hide it. Let’s
+take a look at a hidden variable. What do you think the following application prints?
+
+```java
+class Carnivore {
+    protected boolean hasFur = false;
+}
+
+public class Meerkat extends Carnivore {
+    protected boolean hasFur = true;
+    public static void main(String[] args) {
+        Meerkat m = new Meerkat();
+        Carnivore c = m;
+        System.out.println(m.hasFur); // true
+        System.out.println(c.hasFur); // false
+    }
+}
+```
+
+&emsp;&emsp;
+Confused about the output? Both of these classes define a hasFur variable, but with
+different values. Even though only one object is created by the main() method, both 
+variables exist independently of each other. The output changes depending on the reference variable used. <br />
+
+&emsp;&emsp;
+If you didn’t understand the last example, don’t worry. We cover polymorphism in more
+detail in the next chapter. For now, you just need to know that overriding a method replaces
+the parent method on all reference variables (other than super), whereas hiding a method or
+variable replaces the member only if a child reference type is used.
+
+## IX. Writing final Methods
+We conclude our discussion of method inheritance with a somewhat self-explanatory rule:
+final methods cannot be overridden. By marking a method final, you forbid a child class from
+replacing this method. This rule is in place both when you override a method and when you
+hide a method. In other words, you cannot hide a static method in a child class if it is marked
+final in the parent class.
+
+```java
+public class Bird {
+    public final boolean hasFeathers() {
+        return true;
+    }
+    public final static void flyAway() {}
+}
+
+public class Penguin extends Bird {
+    public final boolean hasFeathers() { // DOES NOT COMPILE
+        return false;
+    }
+    public final static void flyAway() {} // DOES NOT COMPILE
+}
+```
+
+&emsp;&emsp;
+In this example, the instance method hasFeathers() is marked as final in the 
+parent class Bird, so the child class Penguin cannot override the parent method, resulting in
+a compiler error. The static method flyAway() is also marked final, so it cannot be
+hidden in the subclass. In this example, whether or not the child method uses the final 
+keyword is irrelevant—the code will not compile either way. <br />
+
+&emsp;&emsp;
+This rule applies only to inherited methods. For example, if the two methods were
+marked private in the parent Bird class, then the Penguin class, as defined, would compile. In
+that case, the private methods would be redeclared, not overridden or hidden.
