@@ -387,9 +387,351 @@ with a membership type of class is shared among all instances of the interface, 
 method with a membership type of instance is associated with a particular instance of the
 interface.
 
-> **What About protected or Package Interface Members?**:
+> **What About protected or Package Interface Members?**: <br/>
 > Alongside public methods, interfaces now support private methods. They do not
 support protected access, though, as a class cannot extend an interface. They also do not
 support package access, although more likely for syntax reasons and backward 
 compatibility. Since interface methods without an access modifier have been considered implicitly
 public, changing this behavior to package access would break many existing programs!
+
+### &emsp;&emsp; 1. Writing a default Interface Method
+The first type of concrete method you should be familiar with for the exam is a default
+method. A default method is a method defined in an interface with the default keyword
+and includes a method body. It may be optionally overridden by a class implementing the
+interface. <br />
+
+&emsp;&emsp;
+One use of default methods is for backward compatibility. You can add a new default
+method to an interface without the need to modify all of the existing classes that implement
+the interface. The older classes will just use the default implementation of the method defined
+in the interface. This is where the name default method comes from! <br />
+
+&emsp;&emsp;
+The following is an example of a default method defined in an interface:
+
+```java
+public interface IsColdBlooded {
+    boolean hasScales();
+    default double getTemperature() {
+        return 10.0;
+    } 
+}
+```
+
+&emsp;&emsp;
+This example defines two interface methods, one abstract and one default. The following 
+Snake class, which implements IsColdBlooded, must implement hasScales(). It
+may rely on the default implementation of getTemperature() or override the method with
+its own version:
+
+```java
+public class Snake implements IsColdBlooded {
+    public boolean hasScales() { // Required override
+        return true;
+    }
+    public double getTemperature() { // Optional override
+        return 12;
+    }
+}
+```
+
+> **Note**: <br/>
+> Note that the default interface method modifier is not the same as the
+default label used in a switch statement or expression. Likewise, even
+though package access is sometimes referred to as default access, that
+feature is implemented by omitting an access modifier. Sorry if this is
+confusing! We agree Java has overused the word default over the years!
+
+&emsp;&emsp;
+For the exam, you should be familiar with various rules for declaring default methods. <br />
+
+**Default Interface Method Definition Rules**
+1. A default method may be declared only within an interface.
+2. A default method must be marked with the default keyword and include a method body.
+3. A default method is implicitly public.
+4. A default method cannot be marked abstract, final, or static.
+5. A default method may be overridden by a class that implements the interface.
+6. If a class inherits two or more default methods with the same method signature, then the
+   class must override the method.
+
+&emsp;&emsp;
+The first rule should give you some comfort in that you’ll only see default methods in
+interfaces. If you see them in a class or enum on the exam, something is wrong. The second
+rule just denotes syntax, as default methods must use the default keyword. For example,
+the following code snippets will not compile because they mix up concrete and abstract
+interface methods:
+
+```java
+public interface Carnivore {
+    public default void eatMeat(); // DOES NOT COMPILE
+    public int getRequiredFoodAmount() { // DOES NOT COMPILE
+        return 13;
+    } 
+}
+```
+
+&emsp;&emsp;
+The next three rules for default methods follow from the relationship with abstract
+interface methods. Like abstract interface methods, default methods are implicitly public.
+Unlike abstract methods, though, default interface methods cannot be marked abstract
+since they provide a body. They also cannot be marked as final, because they are designed
+so that they can be overridden in classes implementing the interface, just like abstract
+methods. Finally, they cannot be marked static since they are associated with the instance
+of the class implementing the interface.
+
+### &emsp;&emsp; 2. Inheriting Duplicate default Methods
+The last rule for creating a default interface method requires some explanation. For example,
+what value would the following code output?
+
+```java
+public interface Walk {
+    public default int getSpeed() { return 5; }
+}
+
+public interface Run {
+    public default int getSpeed() { return 10; }
+}
+
+public class Cat implements Walk, Run {} // DOES NOT COMPILE
+```
+
+&emsp;&emsp;
+In this example, Cat inherits the two default methods for getSpeed(), so which does
+it use? Since Walk and Run are considered siblings in terms of how they are used in the Cat
+class, it is not clear whether the code should output 5 or 10. In this case, the compiler throws
+up its hands and says, “Too hard, I give up!” and fails. <br />
+
+&emsp;&emsp;
+All is not lost, though. If the class implementing the interfaces overrides the duplicate
+default method, the code will compile without issue. By overriding the conflicting method,
+the ambiguity about which version of the method to call has been removed. For example, the
+following modified implementation of Cat will compile:
+
+```java
+public class Cat implements Walk, Run {
+    public int getSpeed() { return 1; }
+}
+```
+
+### &emsp;&emsp; 3. Calling a Hidden default Method
+In the last section, we showed how our Cat class could override a pair of conflicting
+default methods, but what if the Cat class wanted to access the version of getSpeed() in
+Walk or Run? Is it still accessible? <br />
+
+&emsp;&emsp;
+Yes, but it requires some special syntax.
+
+```java
+public class Cat implements Walk, Run {
+    public int getSpeed() {
+        return 1;
+    }
+    public int getWalkSpeed() {
+        return Walk.super.getSpeed();
+    } 
+}
+```
+
+&emsp;&emsp;
+This is an area where a default method exhibits properties of both a static and 
+instance method. We use the interface name to indicate which method we want to call, but we
+use the super keyword to show that we are following instance inheritance, not class 
+inheritance. Note that calling Walk.getSpeed() or Walk.this.getSpeed() would not have
+worked. A bit confusing, we know, *but you need to be familiar with this syntax for the exam*.
+
+### &emsp;&emsp; 4. Declaring static Interface Methods
+
+Interfaces are also declared with static methods. These methods are defined explicitly with
+the static keyword and, for the most part, behave just like static methods defined in classes.
+
+**Static Interface Method Definition Rules**
+1. A static method must be marked with the static keyword and include a
+   method body.
+2. A static method without an access modifier is implicitly public.
+3. A static method cannot be marked abstract or final.
+4. A static method is not inherited and cannot be accessed in a class implementing the
+   interface without a reference to the interface name.
+
+&emsp;&emsp;
+These rules should follow from what you know so far of classes, interfaces, and static
+methods. For example, you can’t declare static methods without a body in classes, either. Like
+default and abstract interface methods, static interface methods are implicitly public if they
+are declared without an access modifier. As you see shortly, you can use the private access
+modifier with static methods. <br />
+
+&emsp;&emsp;
+Let’s take a look at a static interface method:
+
+```java
+public interface Hop {
+    static int getJumpHeight() {
+        return 8;
+    } 
+}
+```
+
+&emsp;&emsp;
+Since the method is defined without an access modifier, the compiler will automatically 
+insert the public access modifier. The method getJumpHeight() works just like a
+static method as defined in a class. In other words, it can be accessed without an instance
+of a class.
+
+```java
+public class Skip {
+    public int skip() {
+        return Hop.getJumpHeight();
+    } 
+}
+```
+
+&emsp;&emsp;
+The last rule about inheritance might be a little confusing, so let’s look at an example. The
+following is an example of a class Bunny that implements Hop and does not compile:
+
+```java
+public class Bunny implements Hop {
+    public void printDetails() {
+        System.out.println(getJumpHeight()); // DOES NOT COMPILE
+    } 
+}
+```
+
+&emsp;&emsp;
+Without an explicit reference to the name of the interface, the code will not compile, even
+though Bunny implements Hop. This can be easily fixed by using the interface name:
+
+```java
+public class Bunny implements Hop {
+    public void printDetails() {
+        System.out.println(Hop.getJumpHeight());
+    } 
+}
+```
+
+&emsp;&emsp;
+Notice we don’t have the same problem we did when we inherited two default interface
+methods with the same signature. Java “solved” the multiple inheritance problem of static
+interface methods by not allowing them to be inherited!
+
+### &emsp;&emsp; 5. Reusing Code with private Interface Methods
+The last two types of concrete methods that can be added to interfaces are private and
+private static interface methods. Because both types of methods are private, they
+can only be used in the interface declaration in which they are declared. For this reason,
+they were added primarily to reduce code duplication. For example, consider the following
+code sample:
+
+```java
+public interface Schedule {
+    default void wakeUp() { checkTime(7); }
+    private void haveBreakfast() { checkTime(9); }
+    static void workOut() { checkTime(18); }
+    private static void checkTime(int hour) {
+        if (hour> 17) {
+            System.out.println("You're late!");
+        } else {
+            System.out.println("You have "+(17-hour)+" hours left "
+                + "to make the appointment");
+        } 
+    } 
+}
+```
+
+&emsp;&emsp;
+You could write this interface without using a private method by copying the contents of the checkTime() method into the places it is used. It’s a lot shorter and easier to
+read if you don’t. Since the authors of Java were nice enough to add this feature for our
+convenience, we might as well use it!
+
+> **Note**: <br />
+> We could have also declared checkTime() as public in the previous
+example, but this would expose the method to use outside the interface.
+One important tenet of encapsulation is to not expose the internal 
+workings of a class or interface when not required. We cover encapsulation
+later in this chapter.
+
+&emsp;&emsp;
+The difference between a non-static private method and a static one is 
+analogous to the difference between an instance and static method declared within a class. In
+particular, it’s all about what methods each can be called from. <br/>
+
+**Private Interface Method Definition Rules**
+1. A private interface method must be marked with the private modifier and include a
+   method body.
+2. A private static interface method may be called by any method within the interface
+   definition.
+3. A private interface method may only be called by default and other private 
+   nonstatic methods within the interface definition.
+
+&emsp;&emsp;
+Another way to think of it is that a private interface method is only accessible to 
+nonstatic methods defined within the interface. A private static interface method, on
+the other hand, can be accessed by any method in the interface. For both types of private
+methods, a class inheriting the interface cannot directly invoke them.
+
+### &emsp;&emsp; 6. Calling Abstract Methods
+We’ve talked a lot about the newer types of interface methods, but what about abstract
+methods? It turns out default and private non-static methods can access abstract methods
+declared in the interface. This is the primary reason we associate these methods with instance
+membership. When they are invoked, there is an instance of the interface.
+
+```java
+public interface ZooRenovation {
+    public String projectName();
+    abstract String status();
+    default void printStatus() {
+        System.out.print("The " + projectName() + " project " + status());
+    } 
+}
+```
+
+&emsp;&emsp;
+In this example, both projectName() and status() have the same modifiers 
+(abstract and public are implicit) and can be called by the default method
+printStatus().
+
+### &emsp;&emsp; 7. Reviewing Interface Members
+We conclude our discussion of interface members with Table 7.2, which shows the access
+rules for members within and outside an interface.
+
+> **Table 7.2** Interface Member Access Rules
+
+|-|Accessible from *default* and *private* methods within the interface?| Accessible from *static* methods within the interface? | Accessible from methods in classes inheriting the interface? | Accessible without an instance of the interface? |
+|---|---|--------------------------------------------------|--------------------------------------------------------------|--------------------------------------------------|
+|Constant variable|Yes|Yes| Yes                                                          | Yes                                              |
+|Abstract method|Yes|No| Yes                                                          | No                                               |
+|Default method|Yes|No| Yes                                                          | No                                               |
+|Static method|Yes|Yes| Yes (interface name required)                                | Yes (interface name required)                                                   |
+|Private method|Yes|No| No                                                           | No                                               |
+|Private static method|Yes|Yes| No                                                           | No                                               |
+
+&emsp;&emsp;
+While Table 7.2 might seem like a lot to remember, here are some quick tips for the exam:
+
+- Treat abstract, default, and non-static private methods as belonging to an instance of the interface.
+- Treat static methods and variables as belonging to the interface class object.
+- All private interface method types are only accessible within the interface declaration.
+
+&emsp;&emsp;
+Using these rules, which of the following methods do not compile?
+
+```java
+public interface ZooTrainTour {
+    abstract int getTrainName();
+    private static void ride() {}
+    default void playHorn() { getTrainName(); ride(); }
+    public static void slowDown() { playHorn(); }
+    static void speedUp() { ride(); }
+}
+```
+
+&emsp;&emsp;
+The ride() method is private and static, so it can be accessed by any default or
+static method within the interface declaration. The getTrainName() is abstract, so
+it can be accessed by a default method associated with the instance. The slowDown()
+method is static, though, and cannot call a default or private method, such as
+playHorn(), without an explicit reference object. Therefore, the slowDown() method does
+not compile. <br />
+
+&emsp;&emsp;
+Give yourself a pat on the back! You just learned a lot about interfaces, probably more
+than you thought possible. Now take a deep breath. Ready? The next type we are going to
+cover is enums.
