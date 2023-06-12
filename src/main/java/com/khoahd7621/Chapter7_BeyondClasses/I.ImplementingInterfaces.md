@@ -115,7 +115,7 @@ that we saw in the code above. In this manner, the class overrides two abstract 
 same time with one method declaration. You learn more about duplicate and compatible
 interface methods in this chapter.
 
-# II. DExtending an Interface
+# II. Extending an Interface
 
 Like a class, an interface can extend another interface using the extends keyword.
 
@@ -305,7 +305,8 @@ public abstract interface Soar {
 ```
 
 &emsp;&emsp;
-In this example, we’ve marked in bold the implicit modifiers that the compiler automatically inserts. First, the abstract keyword is added to the interface declaration. Next, the
+In this example, we’ve marked in bold the implicit modifiers that the compiler automatically 
+inserts. First, the abstract keyword is added to the interface declaration. Next, the
 public, static, and final keywords are added to the interface variables if they do not
 exist. Finally, each abstract method is prepended with the abstract and public keywords
 if it does not contain them already
@@ -637,7 +638,7 @@ public interface Schedule {
 ```
 
 &emsp;&emsp;
-You could write this interface without using a private method by copying the contents of the checkTime() method into the places it is used. It’s a lot shorter and easier to
+You could write this interface without using a private method by copying the contents of the checkTime() method into the places it is used. It’s a lot shorter and easier to
 read if you don’t. Since the authors of Java were nice enough to add this feature for our
 convenience, we might as well use it!
 
