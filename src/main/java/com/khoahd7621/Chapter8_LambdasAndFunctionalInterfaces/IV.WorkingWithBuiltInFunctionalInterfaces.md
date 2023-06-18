@@ -1,0 +1,516 @@
+# Working with Built-in Functional Interfaces
+
+It would be inconvenient to write your own functional interface any time you want to write
+a lambda. Luckily, a large number of general-purpose functional interfaces are provided for
+you. We cover them in this section. <br />
+
+&emsp;&emsp;
+The core functional interfaces in Table 8.4 are provided in the java.util.function
+package. We cover generics in the next chapter, but for now, you just need to know that
+<T> allows the interface to take an object of a specified type. If a second type parameter is
+needed, we use the next letter, U. If a distinct return type is needed, we choose R for return as
+the generic type.
+
+> **Table 8.4**: Core Functional Interfaces
+
+|Functional interface|Return type| Method name  |# of parameters|
+|--------------------|-----------|--------------|---------------|
+|Supplier<T> |T | get()        |0|
+|Consumer<T> |void | accept(T)    |1 (T)|
+|BiConsumer<T, U> |void | accept(T, U) |2 (T, U)|
+|Predicate<T> |boolean | test(T)      |1 (T)|
+|BiPredicate<T, U> |boolean | test(T, U)   |2 (T, U)|
+|Function<T, R> |R | apply(T)     |1 (T)|
+|BiFunction<T, U, R> |R | apply(T, U)  |2 (T, U)|
+|UnaryOperator<T> |T | apply(T)     |1 (T)|
+|BinaryOperator<T> |T | apply(T, T)  |2 (T, T)|
+
+&emsp;&emsp;
+For the exam, you need to memorize Table 8.4. We will give you lots of practice in this
+section to help make it memorable. Before you ask, most of the time we don’t assign the
+implementation of the interface to a variable. The interface name is implied, and it is passed
+directly to the method that needs it. We are introducing the names so that you can better
+understand and remember what is going on. By the next chapter, we will assume that you
+have this down and stop creating the intermediate variable.
+
+> **Note**: <br />
+> You learn about a few more functional interfaces later in the book. In the
+next chapter, we cover Comparator. In Chapter 13, “Concurrency,” we
+discuss Runnable and Callable. These may show up on the exam when
+you are asked to recognize functional interfaces.
+
+&emsp;&emsp;
+Let’s look at how to implement each of these interfaces. Since both lambdas and method
+references appear all over the exam, we show an implementation using both where possible.
+After introducing the interfaces, we also cover some convenience methods available on these
+interfaces.
+
+## I. Implementing Supplier
+A Supplier is used when you want to generate or supply values without taking any input. The
+Supplier interface is defined as follows:
+
+```java
+@FunctionalInterface
+public interface Supplier<T> {
+    T get();
+}
+```
+
+&emsp;&emsp;
+You can create a LocalDate object using the factory method now(). This example shows
+how to use a Supplier to call this factory:
+
+```java
+Supplier<LocalDate> s1 = LocalDate::now;
+Supplier<LocalDate> s2 = () -> LocalDate.now();
+
+LocalDate d1 = s1.get();
+LocalDate d2 = s2.get();
+
+System.out.println(d1); // 2022-02-20
+System.out.println(d2); // 2022-02-20
+```
+
+&emsp;&emsp;
+This example prints a date twice. It’s also a good opportunity to review static method
+references. The LocalDate::now method reference is used to create a Supplier to assign
+to an intermediate variable s1. A Supplier is often used when constructing new objects.
+For example, we can print two empty StringBuilder objects:
+
+```java
+Supplier<StringBuilder> s1 = StringBuilder::new;
+Supplier<StringBuilder> s2 = () -> new StringBuilder();
+
+System.out.println(s1.get()); // Empty string
+System.out.println(s2.get()); // Empty string
+```
+
+&emsp;&emsp;
+This time, we used a constructor reference to create the object. We’ve been using generics
+to declare what type of Supplier we are using. This can be a little long to read. Can you
+figure out what the following does? Just take it one step at a time:
+
+```java
+Supplier<ArrayList<String>> s3 = ArrayList::new;
+ArrayList<String> a1 = s3.get();
+System.out.println(a1); // []
+```
+
+&emsp;&emsp;
+We have a Supplier of a certain type. That type happens to be ArrayList<String>.
+Then calling get() creates a new instance of ArrayList<String>, which is the generic
+type of the Supplier—in other words, a generic that contains another generic. Be sure to
+look at the code carefully when this type of thing comes up. <br />
+
+&emsp;&emsp;
+Notice how we called get() on the functional interface. What would happen if we tried to
+print out s3 itself?
+
+```java
+System.out.println(s3);
+```
+
+&emsp;&emsp;
+The code prints something like this:
+
+```java
+functionalinterface.BuiltIns$$Lambda$1/0x0000000800066840@4909b8da
+```
+
+&emsp;&emsp;
+That’s the result of calling toString() on a lambda. Yuck. This actually does mean
+something. Our test class is named BuiltIns, and it is in a package that we created named
+functionalinterface. Then comes $$, which means that the class doesn’t exist in a class
+file on the file system. It exists only in memory. You don’t need to worry about the rest.
+
+## II. Implementing Consumer an BiConsumer
+
+You use a Consumer when you want to do something with a parameter but not return
+anything. BiConsumer does the same thing, except that it takes two parameters. The interfaces
+are defined as follows:
+
+```java
+@FunctionalInterface
+public interface Consumer<T> {
+    void accept(T t);
+    // omitted default method
+}
+
+@FunctionalInterface
+public interface BiConsumer<T, U> {
+    void accept(T t, U u);
+    // omitted default method
+}
+```
+
+> **Tip**: <br />
+> You’ll notice this pattern. Bi means two. It comes from Latin, but you
+can remember it from English words like binary (0 or 1) or bicycle (two
+wheels). Always add another parameter when you see Bi.
+
+&emsp;&emsp;
+Pringint is a common use of the Consumer interface:
+
+```java
+Consumer<String> c1 = System.out::println;
+Consumer<String> c2 = x -> System.out.println(x);
+
+c1.accept("Annie"); // Annie
+c2.accept("Annie"); // Annie
+```
+
+&emsp;&emsp;
+BiConsumer is called with two parameters. They don’t have to be the same type. For
+example, we can put a key and a value in a map using this interface:
+
+```java
+var map = new HashMap<String, Integer>();
+BiConsumer<String, Integer> b1 = map::put;
+BiConsumer<String, Integer> b2 = (k, v) -> map.put(k, v);
+
+b1.accept("chicken", 7);
+b2.accept("chick", 1);
+
+System.out.println(map); // {chicken=7, chick=1}
+```
+
+&emsp;&emsp;
+The output is {chicken=7, chick=1}, which shows that both BiConsumer implementations 
+were called. When declaring b1, we used an instance method reference on an object
+since we want to call a method on the local variable map. The code to instantiate b1 is a
+good bit shorter than the code for b2. This is probably why the exam is so fond of method
+references. <br />
+
+&emsp;&emsp;
+As another example, we use the same type for both generic parameters:
+
+```java
+var map = new HashMap<String, String>();
+BiConsumer<String, String> b1 = map::put;
+BiConsumer<String, String> b2 = (k, v) -> map.put(k, v);
+
+b1.accept("chicken", "Cluck");
+b2.accept("chick", "Tweep");
+
+System.out.println(map); // {chicken=Cluck, chick=Tweep}
+```
+
+&emsp;&emsp;
+This shows that a BiConsumer can use the same type for both the T and U generic parameters.
+
+## III. Implementing Predicate and BiPredicate
+Predicate is often used when filtering or matching. Both are common operations. A BiPredicate
+is just like a Predicate, except that it takes two parameters instead of one. The interfaces are
+defined as follows:
+
+```java
+@FunctionalInterface
+public interface Predicate<T> {
+    boolean test(T t);
+    // omitted default and static methods
+}
+
+@FunctionalInterface
+public interface BiPredicate<T, U> {
+    boolean test(T t, U u);
+    // omitted default methods
+}
+```
+
+&emsp;&emsp;
+You can use a Predicate to test a condition.
+
+```java
+Predicate<String> p1 = String::isEmpty;
+Predicate<String> p2 = x -> x.isEmpty();
+
+System.out.println(p1.test("")); // true
+System.out.println(p2.test("")); // true
+```
+
+&emsp;&emsp;
+Ths prints true twice. More interesting is a BiPredicate. This example also prints
+true twice:
+
+```java
+BiPredicate<String, String> b1 = String::startsWith;
+BiPredicate<String, String> b2 =
+    (string, prefix) -> string.startsWith(prefix);
+
+System.out.println(b1.test("chicken", "chick")); // true
+System.out.println(b2.test("chicken", "chick")); // true
+```
+
+&emsp;&emsp;
+The method reference includes both the instance variable and parameter for
+startsWith(). This is a good example of how method references save quite a lot of 
+typing. The downside is that they are less explicit, and you really have to understand what
+is going on!
+
+## IV. Implementing Function and BiFunction
+A Function is responsible for turning one parameter into a value of a potentially different
+type and returning it. Similarly, a BiFunction is responsible for turning two parameters into a
+value and returning it. The interfaces are defined as follows:
+
+```java
+@FunctionalInterface
+public interface Function<T, R> {
+    R apply(T t);
+    // omitted default and static methods
+}
+
+@FunctionalInterface
+public interface BiFunction<T, U, R> {
+    R apply(T t, U u);
+    // omitted default method
+}
+```
+
+&emsp;&emsp;
+For example, this function converts a String to the length of the String:
+
+```java
+Function<String, Integer> f1 = String::length;
+Function<String, Integer> f2 = x -> x.length();
+
+System.out.println(f1.apply("cluck")); // 5
+System.out.println(f2.apply("cluck")); // 5
+```
+
+This function turns a String into an Integer. Well, technically, it turns the String into
+an int, which is autoboxed into an Integer. The types don’t have to be different. The 
+following combines two String objects and produces another String:
+
+```java
+BiFunction<String, String, String> b1 = String::concat;
+BiFunction<String, String, String> b2 =
+    (string, toAdd) -> string.concat(toAdd);
+
+System.out.println(b1.apply("baby ", "chick")); // baby chick
+System.out.println(b2.apply("baby ", "chick")); // baby chick
+```
+
+&emsp;&emsp;
+The first two types in the BiFunction are the input types. The third is the result type.
+For the method reference, the first parameter is the instance that concat() is called on, and
+the second is passed to concat().
+
+## V. Implementing UnaryOperator and BinaryOperator
+UnaryOperator and BinaryOperator are special cases of a Function. They require all
+type parameters to be the same type. A UnaryOperator transforms its value into one of the
+same type. For example, incrementing by one is a unary operation. In fact, UnaryOperator
+extends Function. A BinaryOperator merges two values into one of the same type. 
+Adding two numbers is a binary operation. Similarly, BinaryOperator extends BiFunction.
+The interfaces are defined as follows:
+
+```java
+@FunctionalInterface
+public interface UnaryOperator<T> extends Function<T, T> { 
+    // omitted static method
+}
+
+@FunctionalInterface
+public interface BinaryOperator<T> extends BiFunction<T, T, T> {
+    // omitted static methods 
+}
+```
+
+&emsp;&emsp;
+This means the method signatures look like this:
+
+```java
+T apply(T t);        // UnaryOperator
+        
+T apply(T t1, T t2); // BinaryOperator
+```
+
+&emsp;&emsp;
+In the Javadoc, you’ll notice that these methods are inherited from the
+Function/BiFunction superclass. The generic declarations on the subclass are what force
+the type to be the same. For the unary example, notice how the return type is the same type
+as the parameter.
+
+```java
+UnaryOperator<String> u1 = String::toUpperCase;
+UnaryOperator<String> u2 = x -> x.toUpperCase();
+
+System.out.println(u1.apply("chirp")); // CHIRP
+System.out.println(u2.apply("chirp")); // CHIRP
+```
+
+&emsp;&emsp;
+This prints CHIRP twice. We don’t need to specify the return type in the generics
+because UnaryOperator requires it to be the same as the parameter. And now here’s the
+binary example:
+
+```java
+BinaryOperator<String> b1 = String::concat;
+BinaryOperator<String> b2 = (string, toAdd) -> string.concat(toAdd);
+
+System.out.println(b1.apply("baby ", "chick")); // baby chick
+System.out.println(b2.apply("baby ", "chick")); // baby chick
+```
+
+&emsp;&emsp;
+Notice that this does the same thing as the BiFunction example. The code is more 
+succinct, which shows the importance of using the best functional interface. It’s nice to have one
+generic type specified instead of three.
+
+## VI. Checking Functional Interfaces
+
+It’s really important to know the number of parameters, types, return value, and method
+name for each of the functional interfaces. Now would be a good time to memorize
+Table 8.4 if you haven’t done so already. Let’s do some examples to practice. <br />
+
+&emsp;&emsp;
+What functional interface would you use in these three situations?
+
+- Returns a String without taking any parameters
+- Returns a Boolean and takes a String
+- Returns an Integer and takes two Integer
+
+&emsp;&emsp;
+Ready? Think about what your answers are before continuing. Really. You have to
+know this cold. Okay. The first one is a Supplier<String> because it generates an object
+and takes zero parameters. The second one is a Function<String,Boolean> because
+it takes one parameter and returns another type. It’s a little tricky. You might think it is a
+Predicate<String>. Note that a Predicate returns a boolean primitive and not a
+Boolean object. <br />
+
+&emsp;&emsp;
+Finally, the third one is either a BinaryOperator<Integer> or a
+BiFunction<Integer,Integer,Integer>. Since BinaryOperator is a special case of
+BiFunction, either is a correct answer. BinaryOperator<Integer> is the better answer
+of the two since it is more specific. <br />
+
+&emsp;&emsp;
+Let’s try this exercise again but with code. It’s harder with code. The first thing you do is
+look at how many parameters the lambda takes and whether there is a return value. What
+functional interface would you use to fill in the blanks for these?
+
+```java
+6: ______ <List> ex1 = x -> "".equals(x.get(0));
+7: ______ <Long> ex2 = (Long l) -> System.out.println(l);
+8: ______ <String, String> ex3 = (s1, s2) -> false;
+```
+
+&emsp;&emsp;
+Again, think about the answers before continuing. Ready? Line 6 passes one List 
+parameter to the lambda and returns a boolean. This tells us that it is a Predicate or Function.
+Since the generic declaration has only one parameter, it is a Predicate. <br />
+
+&emsp;&emsp;
+Again, think about the answers before continuing. Ready? Line 6 passes one List 
+parameter to the lambda and returns a boolean. This tells us that it is a Predicate or Function.
+Since the generic declaration has only one parameter, it is a Predicate. <br />
+
+&emsp;&emsp;
+Line 7 passes one Long parameter to the lambda and doesn’t return anything. This tells
+us that it is a Consumer. Line 8 takes two parameters and returns a boolean. When you see
+a boolean returned, think Predicate unless the generics specify a Boolean return type. In this
+case, there are two parameters, so it is a BiPredicate. <br />
+
+&emsp;&emsp;
+Are you finding these easy? If not, review Table 8.4 again. We aren’t kidding. You need to
+know the table really well. Now that you are fresh from studying the table, we are going to
+play “identify the error.” These are meant to be tricky
+
+```java
+6: Function<List<String>> ex1 = x -> x.get(0); // DOES NOT COMPILE
+7: UnaryOperator<Long> ex2 = (Long l) -> 3.14; // DOES NOT COMPILE
+```
+
+&emsp;&emsp;
+Line 6 claims to be a Function. A Function needs to specify two generic types: the
+input parameter type and the return value type. The return value type is missing from line 6,
+causing the code not to compile. Line 7 is a UnaryOperator, which returns the same type
+as it is passed in. The example returns a double rather than a Long, causing the code not
+to compile.
+
+## VII. Using Convenience Methods on Functional Interfaces
+
+By definition, all functional interfaces have a single abstract method. This doesn’t mean they
+can have only one method, though. Several of the common functional interfaces provide a
+number of helpful default interface methods. <br />
+
+&emsp;&emsp;
+Table 8.5 shows the convenience methods on the built-in functional interfaces that you
+need to know for the exam. All of these facilitate modifying or combining functional 
+interfaces of the same type. Note that Table 8.5 shows only the main interfaces. The BiConsumer,
+BiFunction, and BiPredicate interfaces have similar methods available.
+
+> **Table 8.5**: Convenience methods
+
+|Interface instance|Method return type|Method name|Method parameters|
+|------------------|------------------|------------|----------------|
+|Consumer |Consumer |andThen() |Consumer|
+|Function |Function |andThen() |Function|
+|Function |Function |compose() |Function|
+|Predicate |Predicate |and() |Predicate|
+|Predicate |Predicate |negate() |—|
+|Predicate |Predicate |or() |Predicate|
+
+&emsp;&emsp;
+Let’s start with these two Predicate variables:
+
+```java
+Predicate<String> egg = s -> s.contains("egg");
+Predicate<String> brown = s -> s.contains("brown");
+```
+
+&emsp;&emsp;
+Now we want a Predicate for brown eggs and another for all other colors of eggs. We
+could write this by hand, as shown here:
+
+```java
+Predicate<String> brownEggs = s -> s.contains("egg") && s.contains("brown");
+Predicate<String> otherEggs = s -> s.contains("egg") && !s.contains("brown");
+```
+
+&emsp;&emsp;
+This works, but it’s not great. It’s a bit long to read, and it contains duplication. What if
+we decide the letter e should be capitalized in egg? We’d have to change it in three variables:
+egg, brownEggs, and otherEggs. A better way to deal with this situation is to use two of
+the default methods on Predicate.
+
+```java
+Predicate<String> brownEggs = egg.and(brown);
+Predicate<String> otherEggs = egg.and(brown.negate());
+```
+
+&emsp;&emsp;
+Neat! Now we are reusing the logic in the original Predicate variables to build two new
+ones. It’s shorter and clearer what the relationship is between variables. We can also change
+the spelling of egg in one place, and the other two objects will have new logic because they
+reference it. <br />
+
+&emsp;&emsp;
+Moving on to Consumer, let’s take a look at the andThen() method, which runs two
+functional interfaces in sequence:
+
+```java
+Consumer<String> c1 = x -> System.out.print("1: " + x);
+Consumer<String> c2 = x -> System.out.print(",2: " + x);
+
+Consumer<String> combined = c1.andThen(c2);
+combined.accept("Annie"); // 1: Annie,2: Annie
+```
+
+&emsp;&emsp;
+Notice how the same parameter is passed to both c1 and c2. This shows that the
+Consumer instances are run in sequence and are independent of each other. By contrast, the
+compose() method on Function chains functional interfaces. However, it passes along the
+output of one to the input of another.
+
+```java
+Function<Integer, Integer> before = x -> x + 1;
+Function<Integer, Integer> after = x -> x * 2;
+
+Function<Integer, Integer> combined = after.compose(before);
+System.out.println(combined.apply(3)); // 8
+```
+
+&emsp;&emsp;
+This time, the before runs first, turning the 3 into 4. Then the after runs, doubling the
+4 to 8. All of the methods in this section are helpful for simplifying your code as you work
+with functional interfaces.
