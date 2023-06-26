@@ -41,11 +41,11 @@ something goes wrong, like trying to read from an empty Queue.
 
 > **Table 9.3** Queue Methods
 > 
-> | Functionality   | Methods                                               |
-> |:----------------|:------------------------------------------------------|
-> | Add to back     | public boolean add(E e)<br />public boolean offer(E e)|
-> | Read from front | public E element()<br />public E peek()               |
-> |Get and remove from front| public E remove()<br />public E poll()        |
+> | Functionality   | Methods                                                  |
+> |:----------------|:---------------------------------------------------------|
+> | Add to back     | **public boolean add(E e)**<br />public boolean offer(E e) |
+> | Read from front | **public E element()**<br />public E peek()                  |
+> |Get and remove from front| **public E remove**()<br />public E poll()                   |
 
 &emsp;&emsp;
 Let’s show a simple queue example:
