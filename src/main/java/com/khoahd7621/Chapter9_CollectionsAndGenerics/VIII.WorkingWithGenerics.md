@@ -567,4 +567,299 @@ ArrayList. Additionally, we can only assign x2 to a List<Object>. These two vari
 do have one thing in common. Both return type Object when calling the get() method.
 
 ### &emsp;&emsp; B. Creating Upper-Bounded Wildcards
-...
+
+Let’s try to write a method that adds up the total of a list of numbers. We’ve established that
+a generic type can’t just use a subclass.
+
+```java
+ArrayList<Number> list = new ArrayList<Integer>(); // DOES NOT COMPILE
+```
+
+&emsp;&emsp;
+Instead, we need to use a wildcard:
+
+```java
+List<? extends Number> list = new ArrayList<Integer>();
+```
+
+&emsp;&emsp;
+The upper-bounded wildcard says that any class that extends Number or Number itself
+can be used as the formal parameter type:
+
+```java
+public static long total(List<? extends Number> list) {
+    long count = 0;
+    for (Number number: list)
+        count += number.longValue();
+    return count;
+}
+```
+
+&emsp;&emsp;
+Remember how we kept saying that type erasure makes Java think that a generic type
+is an Object? That is still happening here. Java converts the previous code to something
+equivalent to the following:
+
+```java
+public static long total(List list) {
+    long count = 0;
+    for (Object obj: list) {
+        Number number = (Number) obj;
+        count += number.longValue();
+    }
+    return count;
+}
+```
+
+&emsp;&emsp;
+Something interesting happens when we work with upper bounds or unbounded 
+wildcards. The list becomes logically immutable and therefore cannot be modified. Technically,
+you can remove elements from the list, but the exam won’t ask about this.
+
+```java
+2:  static class Sparrow extends Bird { }
+3:  static class Bird { }
+4:
+5:  public static void main(String[] args) {
+6:      List<? extends Bird> birds = new ArrayList<Bird>();
+7:      birds.add(new Sparrow()); // DOES NOT COMPILE
+8:      birds.add(new Bird()); // DOES NOT COMPILE
+9:  }
+```
+
+&emsp;&emsp;
+The problem stems from the fact that Java doesn’t know what type List<? extends
+Bird> really is. It could be List<Bird> or List<Sparrow> or some other generic type
+that hasn’t even been written yet. Line 7 doesn’t compile because we can’t add a Sparrow
+to List<? extends Bird>, and line 8 doesn’t compile because we can’t add a Bird to
+List<Sparrow>. From Java’s point of view, both scenarios are equally possible, so neither
+is allowed. <br />
+
+&emsp;&emsp;
+Now let’s try an example with an interface. We have an interface and two classes that
+implement it.
+
+```java
+interface Flyer { void fly(); }
+class HangGlider implements Flyer { public void fly() {} }
+class Goose implements Flyer { public void fly() {} }
+```
+
+&emsp;&emsp;
+We also have two methods that use it. One just lists the interface, and the other uses an
+upper bound.
+
+```java
+private void anyFlyer(List<Flyer> flyer) {}
+private void groupOfFlyers(List<? extends Flyer> flyer) {}
+```
+
+&emsp;&emsp;
+Note that we used the keyword extends rather than implements. Upper bounds are
+like anonymous classes in that they use extends regardless of whether we are working with
+a class or an interface. <br />
+
+&emsp;&emsp;
+You already learned that a variable of type List<Flyer> can be passed to either method.
+A variable of type List<Goose> can be passed only to the one with the upper bound. This
+shows a benefit of generics. Random flyers don’t fly together. We want our groupOfFlyers()
+method to be called only with the same type. Geese fly together but don’t fly with hang gliders.
+
+### &emsp;&emsp; C. Creating Lower-Bounded Wildcards
+Let’s try to write a method that adds a string "quack" to two lists:
+
+```java
+List<String> strings = new ArrayList<String>();
+strings.add("tweet");
+
+List<Object> objects = new ArrayList<Object>(strings);
+addSound(strings);
+addSound(objects);
+```
+
+&emsp;&emsp;
+The problem is that we want to pass a List<String> and a List<Object> to the same
+method. First, make sure you understand why the first three examples in Table 9.14 do not
+solve this problem.
+
+> **Table 9.14**: Why we need a lower bound
+> 
+> |static void addSound(____ list) {list.add("quack");}|Method compiles|Can pass a List<String>|Can pass a List<Object>|
+> |:---|:---|:---|:---|
+> |List<?>|No (unbounded generics are immutable)|Yes|Yes|
+> |List<? extends Object>|No (upper-bounded generics are immutable)|Yes|Yes|
+> |List<Object>|Yes|No (with generics, must pass exact match)|Yes|
+> |List<? super String>|Yes|Yes|Yes|
+
+&emsp;&emsp;
+To solve this problem, we need to use a lower bound.
+
+```java
+public static void addSound(List<? super String> list) {
+    list.add("quack");
+}
+```
+
+&emsp;&emsp;
+With a lower bound, we are telling Java that the list will be a list of String objects or a
+list of some objects that are a superclass of String. Either way, it is safe to add a String to
+that list. <br />
+
+&emsp;&emsp;
+Just like generic classes, you probably won’t use this in your code unless you are writing
+code for others to reuse. Even then, it would be rare. But it’s on the exam, so now is the time
+to learn it!
+
+> ### **Understanding Generic Supertypes**
+> When you have subclasses and superclasses, lower bounds can get tricky.
+> ```java
+> 3:    List<? super IOException> exceptions = new ArrayList<Exception>();
+> 4:    exceptions.add(new Exception()); // DOES NOT COMPILE
+> 5:    exceptions.add(new IOException());
+> 6:    exceptions.add(new FileNotFoundException());
+> ```
+> Line 3 references a List that could be List&lt;IOException&gt; or List&lt;Exception&gt; or
+List&lt;Object&gt;. Line 4 does not compile because we could have a List&lt;IOException&gt;,
+and an Exception object wouldn’t fit in there. <br />
+> Line 5 is fine. IOException can be added to any of those types. Line 6 is also fine.
+FileNotFoundException can also be added to any of those three types. This is tricky
+because FileNotFoundException is a subclass of IOException, and the keyword says
+super. Java says, “Well, FileNotFoundException also happens to be an IOException,
+so everything is fine.”
+
+## VII. Putting It All Together
+At this point, you know everything that you need to know to ace the exam questions on
+generics. It is possible to put these concepts together to write some really confusing code,
+which the exam likes to do. <br />
+
+&emsp;&emsp;
+This section is going to be difficult to read. It contains the hardest questions that you
+could possibly be asked about generics. The exam questions will probably be easier to read
+than these. We want you to encounter the really tough ones here so that you are ready
+for the exam. In other words, don’t panic. Take it slow, and reread the code a few times.
+You’ll get it.
+
+### &emsp;&emsp; A. Combining Generic Declarations
+Let’s try an example. First, we declare three classes that the example will use:
+
+```java
+class A {}
+class B extends A {}
+class C extends B {}
+```
+
+&emsp;&emsp;
+Ready? Can you figure out why these do or don’t compile? Also, try to figure out
+what they do.
+
+```java
+6:  List<?> list1 = new ArrayList<A>();
+7:  List<? extends A> list2 = new ArrayList<A>();
+8:  List<? super A> list3 = new ArrayList<A>();
+```
+
+&emsp;&emsp;
+Line 6 creates an ArrayList that can hold instances of class A. It is stored in a variable
+with an unbounded wildcard. Any generic type can be referenced from an unbounded 
+wildcard, making this okay. <br />
+
+&emsp;&emsp;
+Line 7 tries to store a list in a variable declaration with an upper-bounded wildcard.
+This is okay. You can have ArrayList&lt;A&gt;, ArrayList&lt;B&gt;, or ArrayList&lt;C&gt; stored
+in that reference. Line 8 is also okay. This time, you have a lower-bounded wildcard. The
+lowest type you can reference is A. Since that is what you have, it compiles. <br />
+
+&emsp;&emsp;
+Did you get those right? Let’s try a few more.
+
+```java
+9:  List<? extends B> list4 = new ArrayList<A>(); // DOES NOT COMPILE
+10: List<? super B> list5 = new ArrayList<A>();
+11: List<?> list6 = new ArrayList<? extends A>(); // DOES NOT COMPILE
+```
+
+&emsp;&emsp;
+Line 9 has an upper-bounded wildcard that allows ArrayList&lt;B&gt; or ArrayList&lt;C&gt;
+to be referenced. Since you have ArrayList&lt;A&gt; that is trying to be referenced, the code
+does not compile. Line 10 has a lower-bounded wildcard, which allows a reference to
+ArrayList&lt;A&gt;, ArrayList&lt;B&gt;, or ArrayList&lt;Object&gt;. <br />
+
+&emsp;&emsp;
+Finally, line 11 allows a reference to any generic type since it is an unbounded wildcard. The
+problem is that you need to know what that type will be when instantiating the ArrayList.
+It wouldn’t be useful anyway, because you can’t add any elements to that ArrayList.
+
+### &emsp;&emsp; B. Passing Generic Arguments
+Now on to the methods. Same question: try to figure out why they don’t compile or what
+they do. We will present the methods one at a time because there is more to think about.
+
+```java
+<T> T first(List<? extends T> list) {
+    return list.get(0);
+}
+```
+
+&emsp;&emsp;
+The first method, first(), is a perfectly normal use of generics. It uses a method-specific
+type parameter, T. It takes a parameter of List&lt;T>, or some subclass of T, and it returns a
+single object of that T type. For example, you could call it with a List&lt;String> parameter
+and have it return a String. Or you could call it with a List&lt;Number> parameter and have
+it return a Number. Or well, you get the idea. <br />
+
+&emsp;&emsp;
+Given that, you should be able to see what is wrong with this one:
+
+```java
+<T> <? extends T> second(List<? extends T> list) { // DOES NOT COMPILE
+    return list.get(0);
+}
+```
+
+&emsp;&emsp;
+The next method, second(), does not compile because the return type isn’t actually a
+type. You are writing the method. You know what type it is supposed to return. You don’t
+get to specify this as a wildcard. <br />
+
+&emsp;&emsp;
+Now be careful—this one is extra tricky:
+
+```java
+<B extends A> B third(List<B> list) {
+    return new B(); // DOES NOT COMPILE
+}
+```
+
+&emsp;&emsp;
+This method, third(), does not compile. &lt;B extends A> says that you want to use B
+as a type parameter just for this method and that it needs to extend the A class. 
+Coincidentally, B is also the name of a class. Well, it isn’t a coincidence. It’s an evil trick. Within the
+scope of the method, B can represent class A, B, or C, because all extend the A class. Since B
+no longer refers to the B class in the method, you can’t instantiate it. <br />
+
+&emsp;&emsp;
+After that, it would be nice to get something straightforward.
+
+```java
+void fourth(List<? super B> list) {}
+```
+
+&emsp;&emsp;
+We finally get a method, fourth(), that is a normal use of generics. You can pass the
+type List&lt;B>, List&lt;A>, or List&lt;Object>. <br />
+
+&emsp;&emsp;
+Finally, can you figure out why this example does not compile?
+
+```java
+<X> void fifth(List<X super B> list) { // DOES NOT COMPILE
+}
+```
+
+&emsp;&emsp;
+This last method, fifth(), does not compile because it tries to mix a method-specific
+type parameter with a wildcard. A wildcard must have a ? in it. <br />
+
+&emsp;&emsp;
+Phew. You made it through generics. It’s the hardest topic in this chapter (and why we
+covered it last!). Remember that it’s okay if you need to go over this material a few times to
+get your head around it.
