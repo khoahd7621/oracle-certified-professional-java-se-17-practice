@@ -90,10 +90,10 @@ Figure 10.3 shows a stream pipeline with one intermediate operation.
 > **Figure 10.3** Steps in running a stream pipeline
 >
 > ```java
-> Take sign         -> Intermediate Operation -> Put sign in pile
-> out of box                (paint sign)
->                           1 -> 2 -> 3
->                           4 -> 5 -> 6                                 
+> Take sign out of box    ->    Intermediate Operation    ->    Put sign in pile
+>                                    (paint sign)
+>                                     1 -> 2 -> 3
+>                                     4 -> 5 -> 6                                 
 > ```
 
 &emsp;&emsp;
@@ -118,9 +118,9 @@ what is needed. As an example, let’s explore the stream pipeline in Figure 10.
 > **Figure 10.4** A stream pipeline with a limit
 >
 > ```java
-> Take sign         ->      Intermediate Operation      -> Put sign in pile
-> out of box                     (paint sign)
->                        Paint sign -> Only do 2 signs
+> Take sign out of box     ->      Intermediate Operation      ->     Put sign in pile
+>                                      (paint sign)
+>                               Paint sign -> Only do 2 signs
 > ```
 
 &emsp;&emsp;
@@ -214,7 +214,7 @@ with the random numbers example, it will keep on producing odd numbers as long a
 need them.
 
 > #### **Printing a Stream Reference**
-> If you try to call System.out.print(stream), you’ll get something like the following:
+> If you try to call `System.out.print(stream)`, you’ll get something like the following:
 > ```java
 > java.util.stream.ReferencePipeline$3@4517d9a3
 > ```
@@ -314,7 +314,7 @@ This example finds the animal with the fewest letters in its name:
 
 ```java
 Stream<String> s = Stream.of("monkey", "ape", "bonobo");
-Optional<String> min = s.min((s1, s2) -> s1.length()-s2.length());
+Optional<String> min = s.min((s1, s2) -> s1.length() - s2.length());
 min.ifPresent(System.out::println); // ape
 ```
 
@@ -473,9 +473,7 @@ processes all elements. The three method signatures are these:
 ```java
 public T reduce(T identity, BinaryOperator<T> accumulator)
 public Optional<T> reduce(BinaryOperator<T> accumulator)
-public <U> U reduce(U identity, 
-        BiFunction<U,? super T,U> accumulator, 
-        BinaryOperator<U> combiner)
+public <U> U reduce(U identity, BiFunction<U, ? super T, U> accumulator, BinaryOperator<U> combiner)
 ```
 
 &emsp;&emsp;
@@ -518,7 +516,7 @@ a stream? Try it. Our solution is shown here:
 
 ```java
 Stream<Integer> stream = Stream.of(3, 5, 6);
-System.out.println(stream.reduce(1, (a, b) -> a*b)); // 90
+System.out.println(stream.reduce(1, (a, b) -> a * b)); // 90
 ```
 
 &emsp;&emsp;
@@ -540,8 +538,8 @@ Stream<Integer> empty = Stream.empty();
 Stream<Integer> oneElement = Stream.of(3);
 Stream<Integer> threeElements = Stream.of(3, 5, 6);
 
-empty.reduce(op).ifPresent(System.out::println); // no output
-oneElement.reduce(op).ifPresent(System.out::println); // 3
+empty.reduce(op).ifPresent(System.out::println);         // no output
+oneElement.reduce(op).ifPresent(System.out::println);    // 3
 threeElements.reduce(op).ifPresent(System.out::println); // 90
 ```
 
@@ -560,7 +558,7 @@ an example that counts the number of characters in each String:
 
 ```java
 Stream<String> stream = Stream.of("w", "o", "l", "f!");
-int length = stream.reduce(0, (i, s) -> i+s.length(), (a, b) -> a+b);
+int length = stream.reduce(0, (i, s) -> i + s.length(), (a, b) -> a + b);
 System.out.println(length); // 5
 ```
 
@@ -587,11 +585,8 @@ because it lets us get data out of streams and into another form. The method sig
 as follows:
 
 ```java
-public <R> R collect(Supplier<R> supplier,
-        BiConsumer<R, ? super T> accumulator,
-        BiConsumer<R, R> combiner)
-
-public <R, A> R collect(Collector<? super T, A,R> collector)
+public <R> R collect(Supplier<R> supplier, BiConsumer<R, ? super T> accumulator, BiConsumer<R, R> combiner)
+public <R, A> R collect(Collector<? super T, A, R> collector)
 ```
 
 &emsp;&emsp;
@@ -724,8 +719,7 @@ Here’s an example:
 
 ```java
 Stream<String> s = Stream.of("duck", "duck", "duck", "goose");
-s.distinct()
-    .forEach(System.out::print); // duckgoose
+s.distinct().forEach(System.out::print); // duckgoose
 ```
 
 ### &emsp;&emsp; 3. Restricting by Position
@@ -788,8 +782,7 @@ for consistency with the other methods so you don’t think we are hiding anythi
 expected to be able to read this:
 
 ```java
-public <R> Stream<R> flatMap(
-    Function<? super T, ? extends Stream<? extends R>> mapper)
+public <R> Stream<R> flatMap(Function<? super T, ? extends Stream<? extends R>> mapper)
 ```
 
 &emsp;&emsp;
