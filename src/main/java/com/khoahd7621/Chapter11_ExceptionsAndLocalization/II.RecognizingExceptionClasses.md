@@ -159,12 +159,12 @@ was disabled by default and had to be enabled via a command-line argument
 `ShowCodeDetailsInExceptionMessages` to the JVM:
 > ```java
 > java -XX:+ShowCodeDetailsInExceptionMessages Frog
-> > ```
+> ```
 > In Java 15 and above, the default behavior was changed so that it is enabled by default,
 although it can still be disabled via the command-line argument.
 > ```java
 > java -XX:-ShowCodeDetailsInExceptionMessages Frog
-> >```
+> ```
 
 ### &emsp;&emsp; 5. *IllegalArgumentException*
 IllegalArgumentException is a way for your program to protect itself. You want to
