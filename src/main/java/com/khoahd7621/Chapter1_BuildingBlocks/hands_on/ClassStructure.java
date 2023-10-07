@@ -1,4 +1,4 @@
-package com.khoahd7621.Chapter1_BuildingBlocks;
+package com.khoahd7621.Chapter1_BuildingBlocks.hands_on;
 
 // Most of the time, each Java class is defined in its own .java file. In this chapter,
 // the only toplevel type is a class. A top-level type is a data structure that can be defined independently

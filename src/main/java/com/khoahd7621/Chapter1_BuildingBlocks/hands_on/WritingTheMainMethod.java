@@ -1,4 +1,4 @@
-package com.khoahd7621.Chapter1_BuildingBlocks;
+package com.khoahd7621.Chapter1_BuildingBlocks.hands_on;
 
 public class WritingTheMainMethod {
 
