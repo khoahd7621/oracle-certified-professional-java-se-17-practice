@@ -162,4 +162,235 @@ The greeting reference points to a new `String` object, "How are you?". The `Str
 object does not have a name and can be accessed only via a corresponding reference.
 
 ## III. Distinguishing between Primitives and Reference Types
-Continue ...
+There are a few important differences you should know between primitives and reference
+types. First, notice that all the primitive types have lowercase type names. All classes that
+come with Java begin with uppercase. Although not required, it is a standard practice, and
+you should follow this convention for classes you create as well. <br />
+
+&emsp;&emsp;
+Next, reference types can be used to call methods, assuming the reference is not **null**.
+Primitives do not have methods declared on them. In this example, we can call a method on
+`reference` since it is of a reference type. You can tell `length` is a method because it has `()` after
+it. See if you can understand why the following snippet does not compile:
+
+```java
+4:  String reference = "hello";
+5:  int len = reference.length();
+6:  int bad = len.length(); // DOES NOT COMPILE
+```
+
+&emsp;&emsp;
+Line 6 is gibberish. No methods exist on `len` because it is an `int` primitive. Primitives
+do not have methods. Remember, a String is not a primitive, so you can call methods like
+`length()` on a `String` reference, as we did on line 5. <br />
+
+&emsp;&emsp;
+Finally, reference types can be assigned `null`, which means they do not currently refer to
+an object. Primitive types will give you a compiler error if you attempt to assign them `null`. In
+this example, value cannot point to `null` because it is of type `int`:
+
+```java
+int value = null; // DOES NOT COMPILE
+String name = null;
+```
+
+&emsp;&emsp;
+But what if you don’t know the value of an int and want to assign it to null? In that
+case, you should use a **numeric wrapper class**, such as `Integer`, instead of int.
+
+## IV. Creating Wrapper Classes
+
+Each primitive type has a wrapper class, which is an object type that corresponds to the
+primitive. Table 1.7 lists all the wrapper classes along with how to create them.
+
+> #### Table 1.7 Wrapper classes
+
+|Primitive type|Wrapper class|Wrapper class inherits Number?| Example of creating        |
+|--------------|-------------|------------------------------|----------------------------|
+|boolean|Boolean|No| Boolean.valueOf(true)      |
+|byte|Byte|Yes| Byte.valueOf((byte) 123)   |
+|short|Short|Yes| Short.valueOf((short) 123) |
+|int|Integer|Yes| Integer.valueOf(123)       |
+|long|Long|Yes| Long.valueOf(123)          |
+|float|Float|Yes| Float.valueOf((float) 1.0) |
+|double|Double|Yes| Double.valueOf(1.0)        |
+|char|Character|No| Character.valueOf('a')     |
+
+&emsp;&emsp;
+There is also a `valueOf()` variant that converts a `String` into the wrapper class.
+For example:
+
+```java
+int primitive = Integer.parseInt("123");
+Integer wrapper = Integer.valueOf("123");
+```
+
+&emsp;&emsp;
+The first line converts a `String` to an `int` primitive. The second converts a `String` to an
+`Integer` wrapper class. <br />
+
+&emsp;&emsp;
+All of the numeric classes in Table 1.7 extend the `Number` class, which means they all
+come with some useful helper methods: `byteValue()`, `shortValue()`, `intValue()`,
+`longValue()`, `floatValue()`, and `doubleValue()`. The `Boolean` and `Character`
+wrapper classes include `booleanValue()` and `charValue()`, respectively. <br />
+
+&emsp;&emsp;
+As you probably guessed, these methods return the primitive value of a wrapper instance,
+in the type requested.
+
+```java
+Double apple = Double.valueOf("200.99");
+System.out.println(apple.byteValue());      // -56
+System.out.println(apple.intValue());       // 200
+System.out.println(apple.doubleValue());    // 200.99
+```
+
+&emsp;&emsp;
+These helper methods do their best to convert values but can result in a loss of 
+precision. In the first example, there is no `200` in `byte`, so it wraps around to `-56`. In the 
+second example, the value is truncated, which means all of the numbers after the decimal are
+dropped. In Chapter 5, we apply autoboxing and unboxing to show how easy Java makes it
+to work with primitive and wrapper values. <br />
+
+&emsp;&emsp;
+Some of the wrapper classes contain additional helper methods for working with 
+numbers. You don’t need to memorize these; you can assume any you are given are valid. For
+example, `Integer` has:
+
+- `max(int num1, int num2)`, which returns the largest of the two numbers
+- `min(int num1, int num2)`, which returns the smallest of the two numbers
+- `sum(int num1, int num2)`, which adds the two numbers
+
+## V. Defining Text Blocks
+Earlier we saw a simple `String` with the value "hello". What if we want to have a `String`
+with something more complicated? For example, let’s figure out how to create a `String`
+with this value:
+
+```java
+"Java Study Guide"
+    by Scott & Jeanne
+```
+
+&emsp;&emsp;
+Building this as a `String` requires two things you haven’t learned yet. The syntax `\"` lets
+you say you want a `"` rather than to end the `String`, and `\n `says you want a new line. Both
+of these are called _escape characters_ because the backslash provides a special meaning. With
+these two new skills, we can write
+
+```java
+String eyeTest = "\"Java Study Guide\"\n    by Scott & Jeanne";
+```
+
+&emsp;&emsp;
+While this does work, it is hard to read. Luckily, Java has _text blocks_, also known as
+multiline strings. See Figure 1.3 for the text block equivalent.
+
+> #### Figure 1.3 Text block
+
+<img src="../../../../../../images/chapter1/unit6/figure1.3.png" alt="Figure 1.3 Text Block" style="width:300px;"/>
+
+&emsp;&emsp;
+A text block starts and ends with three double quotes `"""`, and the contents don’t need
+to be escaped. This is much easier to read. Notice how the type is still `String`. This means
+the methods you learn about in Chapter 4 for String work for both a regular `String` and
+a text block. <br />
+
+&emsp;&emsp;
+You might have noticed the words `incidental` and `essential whitespace` in the figure.
+What’s that? `Essential whitespace` is part of your `String` and is important to you. `Incidental
+whitespace` just happens to be there to make the code easier to read. You can reformat
+your code and change the amount of incidental whitespace without any impact on your
+`String` value. <br />
+
+&emsp;&emsp;
+Imagine a vertical line drawn on the leftmost non-whitespace character in your text
+block. Everything to the left of it is incidental whitespace, and everything to the right is
+essential whitespace. Let’s try an example. How many lines does this output, and how many
+incidental and essential whitespace characters begin each line?
+
+```java
+14: String pyramid = """
+15:   *
+16:  * *
+17: * * *
+18: """;
+19: System.out.print(pyramid);
+```
+
+&emsp;&emsp;
+There are four lines of output. Lines 15–17 have stars. Line 18 is a line without any 
+characters. The closing triple " would have needed to be on line 17 if we didn’t want that blank
+line. There are no incidental whitespace characters here. The closing `"""` on line 18 are the
+leftmost characters, so the line is drawn at the leftmost position. Line 15 has two essential
+whitespace characters to begin the line, and line 16 has one. That whitespace fills in the line
+drawn to match line 18. <br />
+
+&emsp;&emsp;
+Table 1.8 shows some special formatting sequences and compares how they work in a
+regular `String` and a text block.
+
+> #### Table 1.8 Text block formatting
+
+| Formatting |Meaning in regular String|Meaning in text block|
+|------------|-------------------------|---------------------|
+| \"|"|"|
+|\"""|n/a - Invalid|"""|
+|\"\"\"|"""|"""|
+|Space (at end of line)|Space|Ignored|
+|\s|Two spaces (\s is a space and preserves leading space on the line)|Two spaces|
+|\ (at end of line)|n/a - Invalid|Omits new line o that line|
+
+&emsp;&emsp;
+Let’s try a few examples. First, do you see why this doesn’t compile?
+
+```java
+String block = """doe"""; // DOES NOT COMPILE
+```
+
+&emsp;&emsp;
+Text blocks require a line break after the opening `"""`, making this one invalid. Now let’s
+try a valid one. How many lines do you think are in this text block?
+
+```java
+String block = """
+    doe \n
+    deer""";
+```
+
+&emsp;&emsp;
+Just one. The output is doe deer since the `\` tells Java not to add a new line before deer.
+Let’s try determining the number of lines in another text block:
+
+```java
+String block = """
+    doe \n
+    deer
+    """;
+```
+
+&emsp;&emsp;
+This time we have four lines. Since the text block has the closing `"""` on a separate line,
+we have three lines for the lines in the text block plus the explicit `\n`. Let’s try one more.
+What do you think this outputs?
+
+```java
+String block = """
+    "doe\"\"\"
+    \"deer\"""
+    """;
+System.out.print("*" + block + "*");
+```
+
+&emsp;&emsp;
+The answer is
+
+```java
+* "doe"""
+ "deer"""
+*
+```
+
+&emsp;&emsp;
+All of the `\"` escape the `"`. There is one space of essential whitespace on the doe and deer
+lines. All the other leading whitespace is incidental whitespace.
