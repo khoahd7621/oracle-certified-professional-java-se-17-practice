@@ -1,0 +1,143 @@
+# Destroying Objects
+
+Now that we’ve played with our objects, it is time to put them away. Luckily, the JVM takes
+care of that for you. Java provides a garbage collector to automatically look for objects that
+aren’t needed anymore. <br />
+
+&emsp;&emsp;
+Remember, your code isn’t the only process running in your Java program. Java code
+exists inside of a JVM, which includes numerous processes independent from your
+application code. One of the most important of those is a built-in garbage collector. <br />
+
+&emsp;&emsp;
+All Java objects are stored in your program memory’s _heap_. The heap, which is also
+referred to as the _free store_, represents a large pool of unused memory allocated to your Java
+application. If your program keeps instantiating objects and leaving them on the heap, 
+eventually it will run out of memory and crash. Oh, no! Luckily, garbage collection solves this
+problem. In the following sections, we look at garbage collection.
+
+## I. Understanding Garbage Collection
+_Garbage collection_ refers to the process of automatically freeing memory on the heap by
+deleting objects that are no longer reachable in your program. There are many different 
+algorithms for garbage collection, but you don’t need to know any of them for the exam. <br />
+
+&emsp;&emsp;
+As a developer, the most interesting part of garbage collection is determining when the
+memory belonging to an object can be reclaimed. In Java and other languages, _eligible for
+garbage collection_ refers to an object’s state of no longer being accessible in a program and
+therefore able to be garbage collected. <br />
+
+&emsp;&emsp;
+Does this mean an object that’s eligible for garbage collection will be immediately garbage
+collected? Definitely not. When the object actually is discarded is not under your control, but
+for the exam, you will need to know at any given moment which objects are eligible for garbage collection. <br />
+
+&emsp;&emsp;
+Think of garbage-collection eligibility like shipping a package. You can take an item, seal
+it in a labeled box, and put it in your mailbox. This is analogous to making an item eligible
+for garbage collection. When the mail carrier comes by to pick it up, though, is not in your
+control. For example, it may be a postal holiday, or there could be a severe weather event.
+You can even call the post office and ask them to come pick it up right away, but there’s no
+way to guarantee when and if this will actually happen. Hopefully, they will come by before
+your mailbox fills with packages! <br />
+
+&emsp;&emsp;
+Java includes a built-in method to help support garbage collection where you can suggest
+that garbage collection run.
+
+```java
+System.gc();
+```
+
+&emsp;&emsp;
+Just like the post office, Java is free to ignore you. This method is _not guaranteed_ to
+do anything.
+
+## II. Tracing Eligibility
+How does the JVM know when an object is eligible for garbage collection? The JVM waits
+patiently and monitors each object until it determines that the code no longer needs that
+memory. An object will remain on the heap until it is no longer reachable. An object is no
+longer reachable when one of two situations occurs:
+
+- The object no longer has any references pointing to it.
+- All references to the object have gone out of scope.
+
+> ### Objects vs. References
+> Do not confuse a reference with the object that it refers to; they are two different entities.
+The reference is a variable that has a name and can be used to access the contents of an
+object. A reference can be assigned to another reference, passed to a method, or returned
+from a method. All references are the same size, no matter what their type is. <br /><br />
+> An object sits on the heap and does not have a name. Therefore, you have no way to access
+an object except through a reference. Objects come in all different shapes and sizes and
+consume varying amounts of memory. An object cannot be assigned to another object, and
+an object cannot be passed to a method or returned from a method. It is the object that gets
+garbage collected, not its reference. <br /><br />
+> <img src="../../../../../../images/chapter1/unit10/objectsvsreferences.png" alt="Objects vs. References" width="500">
+
+&emsp;&emsp;
+Realizing the difference between a reference and an object goes a long way toward 
+understanding garbage collection, the new operator, and many other facets of the Java language.
+Look at this code and see whether you can figure out when each object first becomes eligible
+for garbage collection:
+
+```java
+1:  public class Scope {
+2:      public static void main(String[] args) {
+3:          String one, two;
+4:          one = new String("a");
+5:          two = new String("b");
+6:          one = two;
+7:          String three = one;
+8:          one = null;
+9:      } 
+10: }
+```
+
+&emsp;&emsp;
+When you are asked a question about garbage collection on the exam, we recommend
+that you draw what’s going on. There’s a lot to keep track of in your head, and it’s easy to
+make a silly mistake trying to hold it all in your memory. Let’s try it together now. Really.
+Get a pencil and paper. We’ll wait. <br />
+
+&emsp;&emsp;
+Got that paper? Okay, let’s get started. On line 3, write `one` and `two` (just the words—no
+need for boxes or arrows since no objects have gone on the heap yet). On line 4, we have our
+first object. Draw a box with the string `"a"` in it, and draw an arrow from the word one to
+that box. Line 5 is similar. Draw another box with the string `"b"` in it this time and an arrow
+from the word two. At this point, your work should look like Figure 1.4.
+
+> #### Figure 1.4 Your drawing after line 5
+> <img src="../../../../../../images/chapter1/unit10/figure1.4.png" alt="Your drawing after line 5" width="200">
+
+&emsp;&emsp;
+On line 6, the variable one changes to point to `"b"`. Either erase or cross out the arrow
+from one and draw a new arrow from one to `"b"`. On line 7, we have a new variable, so
+write the word `three` and draw an arrow from three to `"b"`. Notice that three points to
+what one is pointing to right now and not what it was pointing to at the beginning. This
+is why you are drawing pictures. It’s easy to forget something like that. At this point, your
+work should look like Figure 1.5. <br />
+
+&emsp;&emsp;
+Finally, cross out the line between one and `"b"` since line 8 sets this variable to `null`.
+Now, we were trying to find out when the objects were first eligible for garbage collection.
+On line 6, we got rid of the only arrow pointing to `"a"`, making that object eligible for 
+garbage collection. `"b"` has arrows pointing to it until it goes out of scope. This means `"b"`
+doesn’t go out of scope until the end of the method on line 9.
+
+> #### Figure 1.5 Your drawing after line 7
+> <img src="../../../../../../images/chapter1/unit10/figure1.5.png" alt="Your drawing after line 5" width="200">
+
+> ### Code Formatting on the Exam
+> Not all questions will include package declarations and imports. Don’t worry about missing
+package statements or imports unless you are asked about them. The following are
+common cases where you don’t need to check the imports:
+> - Code that begins with a class name
+> - Code that begins with a method declaration
+> - Code that begins with a code snippet that would normally be inside a class or method
+> - Code that has line numbers that don’t begin with 1
+> 
+> You’ll see code that doesn’t have a method. When this happens, assume any necessary
+plumbing code like the `main()` method and class definition were written correctly. You’re
+just being asked if the part of the code you’re shown compiles when dropped into valid 
+surrounding code. Finally, remember that extra whitespace doesn’t matter in Java syntax. The
+exam may use varying amounts of whitespace to trick you.
