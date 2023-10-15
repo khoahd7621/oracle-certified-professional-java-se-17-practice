@@ -1,4 +1,4 @@
-package com.khoahd7621.Chapter8_LambdasAndFunctionalInterfaces.hands_on;
+package com.khoahd7621.Chapter8_LambdasAndFunctionalInterfaces;
 
 import java.time.LocalDate;
 import java.util.HashMap;
